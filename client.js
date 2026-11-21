@@ -210,7 +210,7 @@ function installSource(input, original) {
 }
 function reloadTarget(bundle) {
   const spec = localSource(bundle);
-  if (spec === void 0 || !bundle.removable || bundle.readOnlyReason !== void 0 || bundle.name === "dsh-local-plugin-reload" || bundle.rows?.some((row) => row.moduleName === "dsh-local-plugin-reload")) return void 0;
+  if (spec === void 0 || !bundle.removable || bundle.readOnlyReason !== void 0 || bundle.error !== void 0 || bundle.name === "dsh-local-plugin-reload" || bundle.rows?.some((row) => row.moduleName === "dsh-local-plugin-reload")) return void 0;
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === void 0 ? {} : { version: bundle.version } };
 }
 async function reload(manager, target, stage, retryInstall = false, destination = target.spec) {

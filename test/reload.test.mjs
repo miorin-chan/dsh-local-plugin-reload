@@ -52,6 +52,7 @@ test('local source covers linked and file dependencies and excludes registry, gi
 test('protects an aggregate that owns the reload plugin and permits other aggregates', () => {
   const rows = [{ rowId: 'reload', moduleName: 'dsh-local-plugin-reload' }]
   assert.equal(reloadTarget({ ...bundle, enabled: true, rows }), undefined)
+  assert.equal(reloadTarget({ ...bundle, rows: [], error: { code: 'invalid-patch' } }), undefined)
   assert.equal(reloadTarget({ ...bundle, rows: [{ ...rows[0], moduleName: 'another-plugin' }] }).name, bundle.name)
 })
 
