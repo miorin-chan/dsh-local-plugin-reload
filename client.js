@@ -59,7 +59,7 @@ async function reload(manager, target, stage, retryInstall = false) {
       return { kind: "changed" };
     }
     failure = "source";
-    const before = await manager.inspect(target.spec);
+    const before = await manager.inspect(target.spec, {});
     if (!before.ok) return { kind: failure, detail: before.error.message, retryInstall: removed };
     if (before.value.status === "refused") {
       const expectedRefusal = before.value.problem === "already-installed" && before.value.reason === `${target.name} is already installed`;
@@ -84,7 +84,7 @@ async function reload(manager, target, stage, retryInstall = false) {
     }
     failure = "installFailed";
     stage("installing");
-    const inspected = retryInstall ? before : await manager.inspect(target.spec);
+    const inspected = retryInstall ? before : await manager.inspect(target.spec, {});
     if (!inspected.ok) return { kind: failure, detail: inspected.error.message, retryInstall: removed };
     if (inspected.value.status === "refused") return { kind: failure, detail: inspected.value.reason, retryInstall: removed };
     const { kind, name, version } = inspected.value;

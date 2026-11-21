@@ -17,7 +17,11 @@ function fixture() {
   let installed = true
   const service = {
     async listBundles() { return ok(installed ? [bundle] : []) },
-    async inspect() { return installed ? alreadyInstalled : accepted },
+    async inspect(spec, options) {
+      assert.equal(spec, bundle.source)
+      assert.deepEqual(options, {})
+      return installed ? alreadyInstalled : accepted
+    },
     async removeBundle(name) {
       calls.push(['remove', name])
       installed = false

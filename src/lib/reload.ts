@@ -44,7 +44,8 @@ export async function reload(
     }
 
     failure = 'source'
-    const before = await manager.inspect(target.spec)
+    // The Client gateway validates business argument arity even for optional parameters.
+    const before = await manager.inspect(target.spec, {})
     if (!before.ok) return { kind: failure, detail: before.error.message, retryInstall: removed }
     if (before.value.status === 'refused') {
       // For an installed directory this API reports the manifest name only in the refusal reason.
@@ -74,7 +75,7 @@ export async function reload(
 
     failure = 'installFailed'
     stage('installing')
-    const inspected = retryInstall ? before : await manager.inspect(target.spec)
+    const inspected = retryInstall ? before : await manager.inspect(target.spec, {})
     if (!inspected.ok) return { kind: failure, detail: inspected.error.message, retryInstall: removed }
     if (inspected.value.status === 'refused') return { kind: failure, detail: inspected.value.reason, retryInstall: removed }
     const { kind, name, version } = inspected.value
