@@ -33,7 +33,8 @@ export function installSource(input: string, original: string): string | undefin
 export function reloadTarget(bundle: BundleInfo): ReloadTarget | undefined {
   const spec = localSource(bundle)
   if (spec === undefined || !bundle.removable || bundle.readOnlyReason !== undefined
-    || bundle.name === 'dsh-local-plugin-reload') return undefined
+    || bundle.name === 'dsh-local-plugin-reload'
+    || bundle.rows?.some(row => row.moduleName === 'dsh-local-plugin-reload')) return undefined
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === undefined ? {} : { version: bundle.version } }
 }
 

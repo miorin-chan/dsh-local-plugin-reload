@@ -49,6 +49,12 @@ test('local source covers linked and file dependencies and excludes registry, gi
   assert.equal(reloadTarget({ ...bundle, name: 'dsh-local-plugin-reload' }), undefined)
 })
 
+test('protects an aggregate that owns the reload plugin and permits other aggregates', () => {
+  const rows = [{ rowId: 'reload', moduleName: 'dsh-local-plugin-reload' }]
+  assert.equal(reloadTarget({ ...bundle, enabled: true, rows }), undefined)
+  assert.equal(reloadTarget({ ...bundle, rows: [{ ...rows[0], moduleName: 'another-plugin' }] }).name, bundle.name)
+})
+
 test('uninstalls then reinstalls from the same spec with the prior enablement and the current source version', async () => {
   const { stages, calls, run } = fixture()
   assert.deepEqual(await run(), { kind: 'done' })
