@@ -1,0 +1,68 @@
+const en = {
+  badge: 'Local', reload: 'Destructive reload', confirm: 'Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes.',
+  confirmAction: 'Uninstall and reinstall', cancel: 'Cancel', close: 'Close', retry: 'Retry installation',
+  checking: 'Checking the local source…', removing: 'Uninstalling…', installing: 'Reinstalling…', done: 'Plugin reinstalled.',
+  restart: 'Plugin reinstalled. Restart DeepSeek Harness to apply the change.', overridden: 'Plugin reinstalled. A profile override controls whether it runs.',
+  changed: 'The installation changed. Reopen the plugin details to check its current state.',
+  source: 'The original source could not be verified.', removeFailed: 'Uninstall did not complete.', installFailed: 'Reinstall did not complete.',
+}
+
+export const LABELS = {
+  en,
+  zh: {
+    badge: '本地', reload: '破坏性重载', confirm: '将卸载此插件，再从原有本地来源重新安装。插件会暂时停止运行，请保持此窗口打开，直到操作完成。',
+    confirmAction: '卸载并重新安装', cancel: '取消', close: '关闭', retry: '重试安装',
+    checking: '正在检查本地来源…', removing: '正在卸载…', installing: '正在重新安装…', done: '插件已重新安装。',
+    restart: '插件已重新安装。重启 DeepSeek Harness 后生效。', overridden: '插件已重新安装。是否运行取决于配置中的覆盖设置。',
+    changed: '安装状态已变化。请重新打开插件详情查看当前状态。',
+    source: '无法验证原有来源。', removeFailed: '卸载未完成。', installFailed: '重新安装未完成。',
+  },
+  ja: {
+    badge: 'ローカル', reload: '再インストール', confirm: 'プラグインをアンインストールし、同じローカルソースから再インストールします。処理が終わるまでこのウィンドウを開いたままにしてください。',
+    confirmAction: 'アンインストールして再インストール', cancel: 'キャンセル', close: '閉じる', retry: 'インストールを再試行',
+    checking: 'ローカルソースを確認中…', removing: 'アンインストール中…', installing: '再インストール中…', done: '再インストールしました。',
+    restart: '再インストールしました。変更を適用するには DeepSeek Harness を再起動してください。', overridden: '再インストールしました。実行状態はプロファイル設定で決まります。',
+    changed: 'インストール状態が変わりました。詳細を開き直してください。', source: '元のソースを確認できませんでした。',
+    removeFailed: 'アンインストールが完了しませんでした。', installFailed: '再インストールが完了しませんでした。',
+  },
+  de: {
+    badge: 'Lokal', reload: 'Neu installieren', confirm: 'Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss geöffnet.',
+    confirmAction: 'Deinstallieren und neu installieren', cancel: 'Abbrechen', close: 'Schließen', retry: 'Installation wiederholen',
+    checking: 'Lokale Quelle wird geprüft…', removing: 'Deinstallation läuft…', installing: 'Neuinstallation läuft…', done: 'Plugin neu installiert.',
+    restart: 'Plugin neu installiert. Starte DeepSeek Harness neu, um die Änderung anzuwenden.', overridden: 'Plugin neu installiert. Eine Profileinstellung bestimmt, ob es ausgeführt wird.',
+    changed: 'Die Installation hat sich geändert. Öffne die Plugin-Details erneut.', source: 'Die ursprüngliche Quelle konnte nicht geprüft werden.',
+    removeFailed: 'Deinstallation nicht abgeschlossen.', installFailed: 'Neuinstallation nicht abgeschlossen.',
+  },
+  es: {
+    badge: 'Local', reload: 'Reinstalar', confirm: 'Se desinstalará el complemento y se instalará de nuevo desde la misma fuente local. Mantén abierta esta ventana hasta que termine.',
+    confirmAction: 'Desinstalar y reinstalar', cancel: 'Cancelar', close: 'Cerrar', retry: 'Reintentar la instalación',
+    checking: 'Comprobando la fuente local…', removing: 'Desinstalando…', installing: 'Reinstalando…', done: 'Complemento reinstalado.',
+    restart: 'Complemento reinstalado. Reinicia DeepSeek Harness para aplicar el cambio.', overridden: 'Complemento reinstalado. El perfil determina si se ejecuta.',
+    changed: 'La instalación ha cambiado. Vuelve a abrir los detalles.', source: 'No se pudo verificar la fuente original.',
+    removeFailed: 'La desinstalación no se completó.', installFailed: 'La reinstalación no se completó.',
+  },
+  fr: {
+    badge: 'Local', reload: 'Réinstaller', confirm: 'L’extension sera désinstallée puis réinstallée depuis la même source locale. Gardez cette fenêtre ouverte jusqu’à la fin.',
+    confirmAction: 'Désinstaller et réinstaller', cancel: 'Annuler', close: 'Fermer', retry: 'Réessayer l’installation',
+    checking: 'Vérification de la source locale…', removing: 'Désinstallation…', installing: 'Réinstallation…', done: 'Extension réinstallée.',
+    restart: 'Extension réinstallée. Redémarrez DeepSeek Harness pour appliquer la modification.', overridden: 'Extension réinstallée. Les réglages du profil déterminent son activation.',
+    changed: 'L’installation a changé. Rouvrez les détails de l’extension.', source: 'Impossible de vérifier la source d’origine.',
+    removeFailed: 'La désinstallation n’a pas abouti.', installFailed: 'La réinstallation n’a pas abouti.',
+  },
+  pt: {
+    badge: 'Local', reload: 'Reinstalar', confirm: 'O plugin será desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta até o fim da operação.',
+    confirmAction: 'Desinstalar e reinstalar', cancel: 'Cancelar', close: 'Fechar', retry: 'Tentar instalar novamente',
+    checking: 'Verificando a origem local…', removing: 'Desinstalando…', installing: 'Reinstalando…', done: 'Plugin reinstalado.',
+    restart: 'Plugin reinstalado. Reinicie o DeepSeek Harness para aplicar a alteração.', overridden: 'Plugin reinstalado. As configurações do perfil determinam se ele será executado.',
+    changed: 'A instalação mudou. Abra novamente os detalhes do plugin.', source: 'Não foi possível verificar a origem original.',
+    removeFailed: 'A desinstalação não foi concluída.', installFailed: 'A reinstalação não foi concluída.',
+  },
+  ru: {
+    badge: 'Локальный', reload: 'Переустановить', confirm: 'Плагин будет удалён и установлен из того же локального источника. Оставьте окно открытым до завершения операции.',
+    confirmAction: 'Удалить и переустановить', cancel: 'Отмена', close: 'Закрыть', retry: 'Повторить установку',
+    checking: 'Проверка локального источника…', removing: 'Удаление…', installing: 'Переустановка…', done: 'Плагин переустановлен.',
+    restart: 'Плагин переустановлен. Перезапустите DeepSeek Harness, чтобы применить изменения.', overridden: 'Плагин переустановлен. Его запуск зависит от настроек профиля.',
+    changed: 'Состояние установки изменилось. Снова откройте сведения о плагине.', source: 'Не удалось проверить исходный источник.',
+    removeFailed: 'Удаление не завершено.', installFailed: 'Переустановка не завершена.',
+  },
+}

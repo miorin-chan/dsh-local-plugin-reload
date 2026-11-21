@@ -1,0 +1,5 @@
+# Activates the bundle. The Host half is inert; the Client half ships through
+# package.json `dsh.client` and carries Local plugin reload.
+- insert:
+    - id: dsh-local-plugin-reload
+      name: 'dsh-local-plugin-reload'
