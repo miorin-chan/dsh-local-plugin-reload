@@ -73,7 +73,8 @@ const css = `
 .dsh-local-dialog p, .dsh-local-dialog code {
   font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; color: var(--dsw-alias-label-secondary);
 }
-.dsh-local-dialog footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dsh-local-dialog footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dsh-local-dialog footer button { white-space: normal; }
 `
 
 export function apply(ctx: ContextFace): void {
@@ -145,30 +146,41 @@ export function apply(ctx: ContextFace): void {
   function Overlay() {
     const state = useSyncExternalStore(dialog.subscribe, dialog.get)
     const modal = useRef<HTMLDialogElement>(null)
+    const status = useRef<HTMLParagraphElement>(null)
+    const dismiss = useRef<HTMLButtonElement>(null)
     useLocale()
     const open = state !== null
+    const kind = state?.kind
+    const waiting = kind === 'checking' || kind === 'removing' || kind === 'installing'
     useEffect(() => {
       const element = modal.current
       if (open && element && !element.open) element.showModal()
       return () => { if (element?.open) element.close() }
     }, [open])
+    useEffect(() => {
+      if (!open) return
+      const focus = waiting ? status.current : dismiss.current
+      focus?.focus()
+    }, [open, waiting])
     if (!state) return <style>{css}</style>
-    const { kind, target } = state
-    const waiting = kind === 'checking' || kind === 'removing' || kind === 'installing'
+    const { kind: phase, target } = state
     const retry = 'retryInstall' in state && state.retryInstall === true
+    const showSource = phase === 'confirm' || retry || phase === 'removeFailed' || phase === 'installFailed'
     return <>
       <style>{css}</style>
-      <dialog ref={modal} className="dsh-local-dialog" aria-labelledby={`${NS}-title`}
+      <dialog ref={modal} className="dsh-local-dialog" aria-labelledby={`${NS}-title`} aria-describedby={`${NS}-status`}
         onCancel={event => { event.preventDefault(); if (!waiting) dialog.set(null) }}>
         <h3 id={`${NS}-title`}>{t('reload')}</h3>
         <p><strong>{target.name}</strong></p>
-        <p role="status">{t(kind)}</p>
-        {kind === 'confirm' || retry ? <code>{target.spec}</code> : null}
+        <p ref={status} id={`${NS}-status`} role="status" tabIndex={-1}>{t(phase)}</p>
+        {phase === 'confirm' && /\.(?:tgz|tar\.gz)$/i.test(target.spec) ? <p>{t('archiveVersion')}</p> : null}
+        {showSource ? <code>{target.spec}</code> : null}
         {'detail' in state && state.detail ? <p>{state.detail}</p> : null}
+        {retry ? <p>{t('recovery')}</p> : null}
         <footer>
-          {!waiting && <button type="button" className="dsh-local-button" autoFocus
-            onClick={() => dialog.set(null)}>{t(kind === 'confirm' ? 'cancel' : 'close')}</button>}
-          {kind === 'confirm' && <button type="button" className="dsh-local-button dsh-local-destructive"
+          {!waiting && <button type="button" className="dsh-local-button" ref={dismiss} autoFocus
+            onClick={() => dialog.set(null)}>{t(phase === 'confirm' ? 'cancel' : 'close')}</button>}
+          {phase === 'confirm' && <button type="button" className="dsh-local-button dsh-local-destructive"
             onClick={() => { void run(target) }}>{t('confirmAction')}</button>}
           {retry && <button type="button" className="dsh-local-button"
             onClick={() => { void run(target, true) }}>{t('retry')}</button>}

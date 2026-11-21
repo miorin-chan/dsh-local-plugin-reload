@@ -9,7 +9,7 @@ export interface ReloadTarget {
   readonly version?: string
 }
 
-type Failure = 'changed' | 'source' | 'removeFailed' | 'installFailed'
+type Failure = 'changed' | 'source' | 'removeFailed' | 'installFailed' | 'activationFailed'
 export type Outcome = { kind: 'done' | 'restart' | 'overridden' }
   | { kind: Failure; detail?: string; retryInstall?: boolean }
 
@@ -94,7 +94,9 @@ export async function reload(
       case 'overridden': return { kind: 'overridden' }
       default: {
         const detail = result.error?.diagnostic ?? result.error?.code ?? result.application
-        return { kind: failure, detail, retryInstall: removed }
+        return result.stage === 'enable'
+          ? { kind: 'activationFailed', detail }
+          : { kind: failure, detail, retryInstall: removed }
       }
     }
   } catch (error) {

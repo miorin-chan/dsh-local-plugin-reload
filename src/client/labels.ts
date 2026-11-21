@@ -1,5 +1,7 @@
 const en = {
-  badge: 'Local', reload: 'Destructive reload', confirm: 'Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes.',
+  badge: 'Local', reload: 'Destructive reload', confirm: 'Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.',
+  archiveVersion: 'A local archive must still contain the currently installed version.', recovery: 'To recover manually, use Plugins → Add plugin with the source above.',
+  activationFailed: 'The package was reinstalled. Open its details to check why activation failed.',
   confirmAction: 'Uninstall and reinstall', cancel: 'Cancel', close: 'Close', retry: 'Retry installation',
   checking: 'Checking the local source…', removing: 'Uninstalling…', installing: 'Reinstalling…', done: 'Plugin reinstalled.',
   restart: 'Plugin reinstalled. Restart DeepSeek Harness to apply the change.', overridden: 'Plugin reinstalled. A profile override controls whether it runs.',
@@ -10,7 +12,9 @@ const en = {
 export const LABELS = {
   en,
   zh: {
-    badge: '本地', reload: '破坏性重载', confirm: '将卸载此插件，再从原有本地来源重新安装。插件会暂时停止运行，请保持此窗口打开，直到操作完成。',
+    badge: '本地', reload: '破坏性重载', confirm: '将卸载此插件，再从原有本地来源重新安装。插件会暂时停止运行，请保持此窗口打开，直到操作完成。 重装失败时，插件可能会处于未安装状态。',
+    archiveVersion: '本地压缩包必须仍包含当前安装的版本。', recovery: '也可在「插件 → 添加插件」中用上面的来源手动恢复。',
+    activationFailed: '插件包已装回。请打开详情查看启用失败的原因。',
     confirmAction: '卸载并重新安装', cancel: '取消', close: '关闭', retry: '重试安装',
     checking: '正在检查本地来源…', removing: '正在卸载…', installing: '正在重新安装…', done: '插件已重新安装。',
     restart: '插件已重新安装。重启 DeepSeek Harness 后生效。', overridden: '插件已重新安装。是否运行取决于配置中的覆盖设置。',
@@ -18,7 +22,9 @@ export const LABELS = {
     source: '无法验证原有来源。', removeFailed: '卸载未完成。', installFailed: '重新安装未完成。',
   },
   ja: {
-    badge: 'ローカル', reload: '再インストール', confirm: 'プラグインをアンインストールし、同じローカルソースから再インストールします。処理が終わるまでこのウィンドウを開いたままにしてください。',
+    badge: 'ローカル', reload: '再インストール', confirm: 'プラグインをアンインストールし、同じローカルソースから再インストールします。処理が終わるまでこのウィンドウを開いたままにしてください。 再インストールに失敗すると削除されたままになることがあります。',
+    archiveVersion: 'ローカルアーカイブには現在のバージョンが必要です。', recovery: '手動で復旧するには、プラグインの追加から上のソースを指定してください。',
+    activationFailed: 'パッケージは再インストールされました。詳細で有効化に失敗した理由を確認してください。',
     confirmAction: 'アンインストールして再インストール', cancel: 'キャンセル', close: '閉じる', retry: 'インストールを再試行',
     checking: 'ローカルソースを確認中…', removing: 'アンインストール中…', installing: '再インストール中…', done: '再インストールしました。',
     restart: '再インストールしました。変更を適用するには DeepSeek Harness を再起動してください。', overridden: '再インストールしました。実行状態はプロファイル設定で決まります。',
@@ -26,7 +32,9 @@ export const LABELS = {
     removeFailed: 'アンインストールが完了しませんでした。', installFailed: '再インストールが完了しませんでした。',
   },
   de: {
-    badge: 'Lokal', reload: 'Neu installieren', confirm: 'Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss geöffnet.',
+    badge: 'Lokal', reload: 'Neu installieren', confirm: 'Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss geöffnet. Wenn die Neuinstallation fehlschlägt, kann das Plugin deinstalliert bleiben.',
+    archiveVersion: 'Das lokale Archiv muss weiterhin die installierte Version enthalten.', recovery: 'Zur manuellen Wiederherstellung verwende die Quelle oben unter „Plugin hinzufügen“.',
+    activationFailed: 'Das Paket wurde installiert. Öffne die Details, um den Aktivierungsfehler zu prüfen.',
     confirmAction: 'Deinstallieren und neu installieren', cancel: 'Abbrechen', close: 'Schließen', retry: 'Installation wiederholen',
     checking: 'Lokale Quelle wird geprüft…', removing: 'Deinstallation läuft…', installing: 'Neuinstallation läuft…', done: 'Plugin neu installiert.',
     restart: 'Plugin neu installiert. Starte DeepSeek Harness neu, um die Änderung anzuwenden.', overridden: 'Plugin neu installiert. Eine Profileinstellung bestimmt, ob es ausgeführt wird.',
@@ -34,7 +42,9 @@ export const LABELS = {
     removeFailed: 'Deinstallation nicht abgeschlossen.', installFailed: 'Neuinstallation nicht abgeschlossen.',
   },
   es: {
-    badge: 'Local', reload: 'Reinstalar', confirm: 'Se desinstalará el complemento y se instalará de nuevo desde la misma fuente local. Mantén abierta esta ventana hasta que termine.',
+    badge: 'Local', reload: 'Reinstalar', confirm: 'Se desinstalará el complemento y se instalará de nuevo desde la misma fuente local. Mantén abierta esta ventana hasta que termine. Si falla la reinstalación, el complemento puede seguir desinstalado.',
+    archiveVersion: 'El archivo local debe conservar la versión instalada.', recovery: 'Para recuperarlo manualmente, usa la fuente anterior en Añadir complemento.',
+    activationFailed: 'El paquete se reinstaló. Abre los detalles para consultar el error de activación.',
     confirmAction: 'Desinstalar y reinstalar', cancel: 'Cancelar', close: 'Cerrar', retry: 'Reintentar la instalación',
     checking: 'Comprobando la fuente local…', removing: 'Desinstalando…', installing: 'Reinstalando…', done: 'Complemento reinstalado.',
     restart: 'Complemento reinstalado. Reinicia DeepSeek Harness para aplicar el cambio.', overridden: 'Complemento reinstalado. El perfil determina si se ejecuta.',
@@ -42,7 +52,9 @@ export const LABELS = {
     removeFailed: 'La desinstalación no se completó.', installFailed: 'La reinstalación no se completó.',
   },
   fr: {
-    badge: 'Local', reload: 'Réinstaller', confirm: 'L’extension sera désinstallée puis réinstallée depuis la même source locale. Gardez cette fenêtre ouverte jusqu’à la fin.',
+    badge: 'Local', reload: 'Réinstaller', confirm: 'L’extension sera désinstallée puis réinstallée depuis la même source locale. Gardez cette fenêtre ouverte jusqu’à la fin. Si la réinstallation échoue, l’extension peut rester désinstallée.',
+    archiveVersion: 'L’archive locale doit toujours contenir la version installée.', recovery: 'Pour la restaurer manuellement, utilisez la source ci-dessus dans Ajouter une extension.',
+    activationFailed: 'Le paquet a été réinstallé. Ouvrez les détails pour vérifier l’erreur d’activation.',
     confirmAction: 'Désinstaller et réinstaller', cancel: 'Annuler', close: 'Fermer', retry: 'Réessayer l’installation',
     checking: 'Vérification de la source locale…', removing: 'Désinstallation…', installing: 'Réinstallation…', done: 'Extension réinstallée.',
     restart: 'Extension réinstallée. Redémarrez DeepSeek Harness pour appliquer la modification.', overridden: 'Extension réinstallée. Les réglages du profil déterminent son activation.',
@@ -50,7 +62,9 @@ export const LABELS = {
     removeFailed: 'La désinstallation n’a pas abouti.', installFailed: 'La réinstallation n’a pas abouti.',
   },
   pt: {
-    badge: 'Local', reload: 'Reinstalar', confirm: 'O plugin será desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta até o fim da operação.',
+    badge: 'Local', reload: 'Reinstalar', confirm: 'O plugin será desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta até o fim da operação. Se a reinstalação falhar, o plugin pode continuar desinstalado.',
+    archiveVersion: 'O arquivo local ainda precisa conter a versão instalada.', recovery: 'Para recuperar manualmente, use a origem acima em Adicionar plugin.',
+    activationFailed: 'O pacote foi reinstalado. Abra os detalhes para verificar o erro de ativação.',
     confirmAction: 'Desinstalar e reinstalar', cancel: 'Cancelar', close: 'Fechar', retry: 'Tentar instalar novamente',
     checking: 'Verificando a origem local…', removing: 'Desinstalando…', installing: 'Reinstalando…', done: 'Plugin reinstalado.',
     restart: 'Plugin reinstalado. Reinicie o DeepSeek Harness para aplicar a alteração.', overridden: 'Plugin reinstalado. As configurações do perfil determinam se ele será executado.',
@@ -58,7 +72,9 @@ export const LABELS = {
     removeFailed: 'A desinstalação não foi concluída.', installFailed: 'A reinstalação não foi concluída.',
   },
   ru: {
-    badge: 'Локальный', reload: 'Переустановить', confirm: 'Плагин будет удалён и установлен из того же локального источника. Оставьте окно открытым до завершения операции.',
+    badge: 'Локальный', reload: 'Переустановить', confirm: 'Плагин будет удалён и установлен из того же локального источника. Оставьте окно открытым до завершения операции. Если переустановка не удастся, плагин может остаться удалённым.',
+    archiveVersion: 'Локальный архив должен содержать установленную версию.', recovery: 'Для ручного восстановления укажите источник выше в разделе «Добавить плагин».',
+    activationFailed: 'Пакет переустановлен. Откройте сведения, чтобы проверить ошибку активации.',
     confirmAction: 'Удалить и переустановить', cancel: 'Отмена', close: 'Закрыть', retry: 'Повторить установку',
     checking: 'Проверка локального источника…', removing: 'Удаление…', installing: 'Переустановка…', done: 'Плагин переустановлен.',
     restart: 'Плагин переустановлен. Перезапустите DeepSeek Harness, чтобы применить изменения.', overridden: 'Плагин переустановлен. Его запуск зависит от настроек профиля.',

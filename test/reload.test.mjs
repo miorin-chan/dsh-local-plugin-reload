@@ -80,6 +80,12 @@ test('removal failure prevents installation', async () => {
   assert.deepEqual(calls, [])
 })
 
+test('an activation failure after installing the files points back to the existing bundle', async () => {
+  const { service, run } = fixture()
+  service.installBundle = async () => ok({ stage: 'enable', application: 'failed', error: { code: 'operation-error' } })
+  assert.deepEqual(await run(), { kind: 'activationFailed', detail: 'operation-error' })
+})
+
 test('retry after removal installs without removing twice and reports a required restart', async () => {
   const { service, calls, run } = fixture()
   const install = service.installBundle

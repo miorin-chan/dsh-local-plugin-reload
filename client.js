@@ -107,7 +107,7 @@ async function reload(manager, target, stage, retryInstall = false) {
         return { kind: "overridden" };
       default: {
         const detail = result.error?.diagnostic ?? result.error?.code ?? result.application;
-        return { kind: failure, detail, retryInstall: removed };
+        return result.stage === "enable" ? { kind: "activationFailed", detail } : { kind: failure, detail, retryInstall: removed };
       }
     }
   } catch (error) {
@@ -119,7 +119,10 @@ async function reload(manager, target, stage, retryInstall = false) {
 var en = {
   badge: "Local",
   reload: "Destructive reload",
-  confirm: "Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes.",
+  confirm: "Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.",
+  archiveVersion: "A local archive must still contain the currently installed version.",
+  recovery: "To recover manually, use Plugins \u2192 Add plugin with the source above.",
+  activationFailed: "The package was reinstalled. Open its details to check why activation failed.",
   confirmAction: "Uninstall and reinstall",
   cancel: "Cancel",
   close: "Close",
@@ -140,7 +143,10 @@ var LABELS = {
   zh: {
     badge: "\u672C\u5730",
     reload: "\u7834\u574F\u6027\u91CD\u8F7D",
-    confirm: "\u5C06\u5378\u8F7D\u6B64\u63D2\u4EF6\uFF0C\u518D\u4ECE\u539F\u6709\u672C\u5730\u6765\u6E90\u91CD\u65B0\u5B89\u88C5\u3002\u63D2\u4EF6\u4F1A\u6682\u65F6\u505C\u6B62\u8FD0\u884C\uFF0C\u8BF7\u4FDD\u6301\u6B64\u7A97\u53E3\u6253\u5F00\uFF0C\u76F4\u5230\u64CD\u4F5C\u5B8C\u6210\u3002",
+    confirm: "\u5C06\u5378\u8F7D\u6B64\u63D2\u4EF6\uFF0C\u518D\u4ECE\u539F\u6709\u672C\u5730\u6765\u6E90\u91CD\u65B0\u5B89\u88C5\u3002\u63D2\u4EF6\u4F1A\u6682\u65F6\u505C\u6B62\u8FD0\u884C\uFF0C\u8BF7\u4FDD\u6301\u6B64\u7A97\u53E3\u6253\u5F00\uFF0C\u76F4\u5230\u64CD\u4F5C\u5B8C\u6210\u3002 \u91CD\u88C5\u5931\u8D25\u65F6\uFF0C\u63D2\u4EF6\u53EF\u80FD\u4F1A\u5904\u4E8E\u672A\u5B89\u88C5\u72B6\u6001\u3002",
+    archiveVersion: "\u672C\u5730\u538B\u7F29\u5305\u5FC5\u987B\u4ECD\u5305\u542B\u5F53\u524D\u5B89\u88C5\u7684\u7248\u672C\u3002",
+    recovery: "\u4E5F\u53EF\u5728\u300C\u63D2\u4EF6 \u2192 \u6DFB\u52A0\u63D2\u4EF6\u300D\u4E2D\u7528\u4E0A\u9762\u7684\u6765\u6E90\u624B\u52A8\u6062\u590D\u3002",
+    activationFailed: "\u63D2\u4EF6\u5305\u5DF2\u88C5\u56DE\u3002\u8BF7\u6253\u5F00\u8BE6\u60C5\u67E5\u770B\u542F\u7528\u5931\u8D25\u7684\u539F\u56E0\u3002",
     confirmAction: "\u5378\u8F7D\u5E76\u91CD\u65B0\u5B89\u88C5",
     cancel: "\u53D6\u6D88",
     close: "\u5173\u95ED",
@@ -159,7 +165,10 @@ var LABELS = {
   ja: {
     badge: "\u30ED\u30FC\u30AB\u30EB",
     reload: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB",
-    confirm: "\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3001\u540C\u3058\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9\u304B\u3089\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3059\u3002\u51E6\u7406\u304C\u7D42\u308F\u308B\u307E\u3067\u3053\u306E\u30A6\u30A3\u30F3\u30C9\u30A6\u3092\u958B\u3044\u305F\u307E\u307E\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    confirm: "\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3001\u540C\u3058\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9\u304B\u3089\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3059\u3002\u51E6\u7406\u304C\u7D42\u308F\u308B\u307E\u3067\u3053\u306E\u30A6\u30A3\u30F3\u30C9\u30A6\u3092\u958B\u3044\u305F\u307E\u307E\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002 \u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u306B\u5931\u6557\u3059\u308B\u3068\u524A\u9664\u3055\u308C\u305F\u307E\u307E\u306B\u306A\u308B\u3053\u3068\u304C\u3042\u308A\u307E\u3059\u3002",
+    archiveVersion: "\u30ED\u30FC\u30AB\u30EB\u30A2\u30FC\u30AB\u30A4\u30D6\u306B\u306F\u73FE\u5728\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u5FC5\u8981\u3067\u3059\u3002",
+    recovery: "\u624B\u52D5\u3067\u5FA9\u65E7\u3059\u308B\u306B\u306F\u3001\u30D7\u30E9\u30B0\u30A4\u30F3\u306E\u8FFD\u52A0\u304B\u3089\u4E0A\u306E\u30BD\u30FC\u30B9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    activationFailed: "\u30D1\u30C3\u30B1\u30FC\u30B8\u306F\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3055\u308C\u307E\u3057\u305F\u3002\u8A73\u7D30\u3067\u6709\u52B9\u5316\u306B\u5931\u6557\u3057\u305F\u7406\u7531\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
     confirmAction: "\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3066\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB",
     cancel: "\u30AD\u30E3\u30F3\u30BB\u30EB",
     close: "\u9589\u3058\u308B",
@@ -178,7 +187,10 @@ var LABELS = {
   de: {
     badge: "Lokal",
     reload: "Neu installieren",
-    confirm: "Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss ge\xF6ffnet.",
+    confirm: "Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss ge\xF6ffnet. Wenn die Neuinstallation fehlschl\xE4gt, kann das Plugin deinstalliert bleiben.",
+    archiveVersion: "Das lokale Archiv muss weiterhin die installierte Version enthalten.",
+    recovery: "Zur manuellen Wiederherstellung verwende die Quelle oben unter \u201EPlugin hinzuf\xFCgen\u201C.",
+    activationFailed: "Das Paket wurde installiert. \xD6ffne die Details, um den Aktivierungsfehler zu pr\xFCfen.",
     confirmAction: "Deinstallieren und neu installieren",
     cancel: "Abbrechen",
     close: "Schlie\xDFen",
@@ -197,7 +209,10 @@ var LABELS = {
   es: {
     badge: "Local",
     reload: "Reinstalar",
-    confirm: "Se desinstalar\xE1 el complemento y se instalar\xE1 de nuevo desde la misma fuente local. Mant\xE9n abierta esta ventana hasta que termine.",
+    confirm: "Se desinstalar\xE1 el complemento y se instalar\xE1 de nuevo desde la misma fuente local. Mant\xE9n abierta esta ventana hasta que termine. Si falla la reinstalaci\xF3n, el complemento puede seguir desinstalado.",
+    archiveVersion: "El archivo local debe conservar la versi\xF3n instalada.",
+    recovery: "Para recuperarlo manualmente, usa la fuente anterior en A\xF1adir complemento.",
+    activationFailed: "El paquete se reinstal\xF3. Abre los detalles para consultar el error de activaci\xF3n.",
     confirmAction: "Desinstalar y reinstalar",
     cancel: "Cancelar",
     close: "Cerrar",
@@ -216,7 +231,10 @@ var LABELS = {
   fr: {
     badge: "Local",
     reload: "R\xE9installer",
-    confirm: "L\u2019extension sera d\xE9sinstall\xE9e puis r\xE9install\xE9e depuis la m\xEAme source locale. Gardez cette fen\xEAtre ouverte jusqu\u2019\xE0 la fin.",
+    confirm: "L\u2019extension sera d\xE9sinstall\xE9e puis r\xE9install\xE9e depuis la m\xEAme source locale. Gardez cette fen\xEAtre ouverte jusqu\u2019\xE0 la fin. Si la r\xE9installation \xE9choue, l\u2019extension peut rester d\xE9sinstall\xE9e.",
+    archiveVersion: "L\u2019archive locale doit toujours contenir la version install\xE9e.",
+    recovery: "Pour la restaurer manuellement, utilisez la source ci-dessus dans Ajouter une extension.",
+    activationFailed: "Le paquet a \xE9t\xE9 r\xE9install\xE9. Ouvrez les d\xE9tails pour v\xE9rifier l\u2019erreur d\u2019activation.",
     confirmAction: "D\xE9sinstaller et r\xE9installer",
     cancel: "Annuler",
     close: "Fermer",
@@ -235,7 +253,10 @@ var LABELS = {
   pt: {
     badge: "Local",
     reload: "Reinstalar",
-    confirm: "O plugin ser\xE1 desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta at\xE9 o fim da opera\xE7\xE3o.",
+    confirm: "O plugin ser\xE1 desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta at\xE9 o fim da opera\xE7\xE3o. Se a reinstala\xE7\xE3o falhar, o plugin pode continuar desinstalado.",
+    archiveVersion: "O arquivo local ainda precisa conter a vers\xE3o instalada.",
+    recovery: "Para recuperar manualmente, use a origem acima em Adicionar plugin.",
+    activationFailed: "O pacote foi reinstalado. Abra os detalhes para verificar o erro de ativa\xE7\xE3o.",
     confirmAction: "Desinstalar e reinstalar",
     cancel: "Cancelar",
     close: "Fechar",
@@ -254,7 +275,10 @@ var LABELS = {
   ru: {
     badge: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439",
     reload: "\u041F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
-    confirm: "\u041F\u043B\u0430\u0433\u0438\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0438\u0437 \u0442\u043E\u0433\u043E \u0436\u0435 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043E\u043A\u043D\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438.",
+    confirm: "\u041F\u043B\u0430\u0433\u0438\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0438\u0437 \u0442\u043E\u0433\u043E \u0436\u0435 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043E\u043A\u043D\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438. \u0415\u0441\u043B\u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u043D\u0435 \u0443\u0434\u0430\u0441\u0442\u0441\u044F, \u043F\u043B\u0430\u0433\u0438\u043D \u043C\u043E\u0436\u0435\u0442 \u043E\u0441\u0442\u0430\u0442\u044C\u0441\u044F \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u043C.",
+    archiveVersion: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432 \u0434\u043E\u043B\u0436\u0435\u043D \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u044C \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E.",
+    recovery: "\u0414\u043B\u044F \u0440\u0443\u0447\u043D\u043E\u0433\u043E \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0432\u044B\u0448\u0435 \u0432 \u0440\u0430\u0437\u0434\u0435\u043B\u0435 \xAB\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043B\u0430\u0433\u0438\u043D\xBB.",
+    activationFailed: "\u041F\u0430\u043A\u0435\u0442 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D. \u041E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 \u0441\u0432\u0435\u0434\u0435\u043D\u0438\u044F, \u0447\u0442\u043E\u0431\u044B \u043F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u043E\u0448\u0438\u0431\u043A\u0443 \u0430\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u0438.",
     confirmAction: "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
     cancel: "\u041E\u0442\u043C\u0435\u043D\u0430",
     close: "\u0417\u0430\u043A\u0440\u044B\u0442\u044C",
@@ -318,7 +342,8 @@ var css = `
 .dsh-local-dialog p, .dsh-local-dialog code {
   font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; color: var(--dsw-alias-label-secondary);
 }
-.dsh-local-dialog footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dsh-local-dialog footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.dsh-local-dialog footer button { white-space: normal; }
 `;
 function apply(ctx) {
   const manager = ctx.remote.pluginManager;
@@ -395,8 +420,12 @@ function apply(ctx) {
   function Overlay() {
     const state = (0, import_react.useSyncExternalStore)(dialog.subscribe, dialog.get);
     const modal = (0, import_react.useRef)(null);
+    const status = (0, import_react.useRef)(null);
+    const dismiss = (0, import_react.useRef)(null);
     useLocale();
     const open = state !== null;
+    const kind = state?.kind;
+    const waiting = kind === "checking" || kind === "removing" || kind === "installing";
     (0, import_react.useEffect)(() => {
       const element = modal.current;
       if (open && element && !element.open) element.showModal();
@@ -404,10 +433,15 @@ function apply(ctx) {
         if (element?.open) element.close();
       };
     }, [open]);
+    (0, import_react.useEffect)(() => {
+      if (!open) return;
+      const focus = waiting ? status.current : dismiss.current;
+      focus?.focus();
+    }, [open, waiting]);
     if (!state) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css });
-    const { kind, target } = state;
-    const waiting = kind === "checking" || kind === "removing" || kind === "installing";
+    const { kind: phase, target } = state;
     const retry = "retryInstall" in state && state.retryInstall === true;
+    const showSource = phase === "confirm" || retry || phase === "removeFailed" || phase === "installFailed";
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
@@ -416,6 +450,7 @@ function apply(ctx) {
           ref: modal,
           className: "dsh-local-dialog",
           "aria-labelledby": `${NS}-title`,
+          "aria-describedby": `${NS}-status`,
           onCancel: (event) => {
             event.preventDefault();
             if (!waiting) dialog.set(null);
@@ -423,21 +458,24 @@ function apply(ctx) {
           children: [
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { id: `${NS}-title`, children: t("reload") }),
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: target.name }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", children: t(kind) }),
-            kind === "confirm" || retry ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: target.spec }) : null,
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { ref: status, id: `${NS}-status`, role: "status", tabIndex: -1, children: t(phase) }),
+            phase === "confirm" && /\.(?:tgz|tar\.gz)$/i.test(target.spec) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("archiveVersion") }) : null,
+            showSource ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: target.spec }) : null,
             "detail" in state && state.detail ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: state.detail }) : null,
+            retry ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("recovery") }) : null,
             /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", { children: [
               !waiting && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
                 "button",
                 {
                   type: "button",
                   className: "dsh-local-button",
+                  ref: dismiss,
                   autoFocus: true,
                   onClick: () => dialog.set(null),
-                  children: t(kind === "confirm" ? "cancel" : "close")
+                  children: t(phase === "confirm" ? "cancel" : "close")
                 }
               ),
-              kind === "confirm" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              phase === "confirm" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
                 "button",
                 {
                   type: "button",
