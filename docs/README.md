@@ -1,6 +1,6 @@
 # 项目文档
 
-徽章和重载入口使用插件详情页公开的 `plugins.detail.badge` 和 `plugins.detail.actions` 槽。
+`plugins.detail.badge` 和 `plugins.detail.section` 分别放置详情徽章和来源编辑行。
 重装经过现有插件管理权限检查，进度弹窗放在 `shell.overlay` 中，因此目标插件从面板移除时，弹窗仍能显示结果。
 来源和启用状态以 Host 返回的已安装清单为准。
 

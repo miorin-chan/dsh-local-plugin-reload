@@ -9,8 +9,8 @@ import type { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
 import type { PluginDetailProps } from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 import type { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
-import { useEffect, useRef, useSyncExternalStore } from 'react'
-import { localSource, reload, reloadTarget, type Outcome, type ReloadTarget } from '../lib/reload.js'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { installSource, localSource, reload, reloadTarget, type Outcome, type ReloadTarget } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
 const NS = 'dsh-local-plugin-reload'
@@ -21,14 +21,14 @@ type ContextFace = Pick<Context, 'effect' | 'on'> & {
   slots: SlotRegistry
   remote: ClientRemote
 }
-type DetailProps = PluginDetailProps & Pick<PropsRuntime<'plugins.detail.actions'>, 'useRemoteAccess'>
+type DetailProps = PluginDetailProps & Pick<PropsRuntime<'plugins.detail.section'>, 'useRemoteAccess'>
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
     'dsh-local-plugin-reload': keyof typeof LABELS.en
   }
 }
-type DialogState = { target: ReloadTarget } & (
+type DialogState = { target: ReloadTarget; destination: string } & (
   { kind: 'confirm' | 'checking' | 'removing' | 'installing' } | Outcome
 )
 
@@ -63,6 +63,16 @@ const css = `
 .dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
 .dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
+.dsh-local-source-section { border-top: 1px solid var(--dsw-alias-border-l1); padding: 16px 0; }
+.dsh-local-source-section label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dsh-local-source-input {
+  flex: 1 1 180px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
+}
+.dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
+.dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
   border: 1px solid var(--dsw-alias-border-l1); border-radius: 16px;
@@ -121,25 +131,66 @@ export function apply(ctx: ContextFace): void {
     return bundle && localSource(bundle) ? <span className="dsh-local-badge">{t('badge')}</span> : null
   }
 
-  function ReloadButton(props: DetailProps) {
+  function ReloadSection(props: DetailProps) {
     const bundle = useBundle(props)
     const canInspect = props.useRemoteAccess('pluginManager/inspect')
     const canRemove = props.useRemoteAccess('pluginManager/removeBundle')
     const canInstall = props.useRemoteAccess('pluginManager/installBundle')
-    const state = useSyncExternalStore(dialog.subscribe, dialog.get)
     useLocale()
     const target = bundle && reloadTarget(bundle)
     if (!target || props.subject.kind !== 'bundle' || !canInspect || !canRemove || !canInstall) return null
-    return <button type="button" className="dsh-local-button dsh-local-destructive" disabled={state !== null}
-      onClick={() => dialog.set({ kind: 'confirm', target })}>{t('reload')}</button>
+    return <SourceEditor key={`${target.name}:${target.spec}`} target={target} />
   }
 
-  async function run(target: ReloadTarget, retry = false) {
-    const state = dialog.get()
-    if (state?.target !== target || (retry ? !('retryInstall' in state && state.retryInstall) : state.kind !== 'confirm')) return
-    const result = await reload(manager, target, kind => dialog.set({ kind, target }), retry)
+  function SourceEditor({ target }: { target: ReloadTarget }) {
+    const state = useSyncExternalStore(dialog.subscribe, dialog.get)
+    const [draft, setDraft] = useState(target.spec)
+    const [editing, setEditing] = useState(false)
+    const input = useRef<HTMLInputElement>(null)
+    const pencil = useRef<HTMLButtonElement>(null)
+    const destination = installSource(draft, target.spec)
+    useEffect(() => { if (editing) input.current?.focus() }, [editing])
+    const invalid = destination === undefined
+    return <section className="dsh-local-source-section">
+      <label htmlFor={`${NS}-source`}>{t('sourceLabel')}</label>
+      <form className="dsh-local-source-row" onSubmit={event => {
+        event.preventDefault()
+        if (destination && state === null) dialog.set({ kind: 'confirm', target, destination })
+      }}>
+        <button ref={pencil} type="button" className="dsh-local-button dsh-local-edit" aria-label={t('editSource')}
+          title={t('editSource')} disabled={state !== null} onClick={() => {
+            if (editing) input.current?.focus()
+            else setEditing(true)
+          }}>
+          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+            <path d="m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" />
+          </svg>
+        </button>
+        <input ref={input} id={`${NS}-source`} className="dsh-local-source-input" type="text" spellCheck={false}
+          autoCapitalize="off" autoComplete="off" readOnly={!editing || state !== null} value={draft}
+          aria-invalid={invalid || undefined} aria-describedby={invalid ? `${NS}-source-error` : undefined}
+          onChange={event => setDraft(event.target.value)} onKeyDown={event => {
+            if (event.key === 'Escape' && editing) {
+              event.stopPropagation()
+              setDraft(target.spec)
+              setEditing(false)
+              pencil.current?.focus()
+            }
+          }} />
+        <button type="submit" className="dsh-local-button dsh-local-destructive" disabled={invalid}>{t('reload')}</button>
+      </form>
+      {invalid && <p id={`${NS}-source-error`} className="dsh-local-source-error">{t('invalidSource')}</p>}
+    </section>
+  }
+
+  async function run(state: DialogState, destination = state.destination) {
+    if (dialog.get() !== state) return
+    const retry = 'retryInstall' in state && state.retryInstall === true
+    if (!retry && state.kind !== 'confirm') return
+    const { target } = state
+    const result = await reload(manager, target, kind => dialog.set({ kind, target, destination }), retry, destination)
     if (disposed) return
-    dialog.set({ ...result, target })
+    dialog.set({ ...result, target, destination })
     refresh()
   }
 
@@ -163,8 +214,9 @@ export function apply(ctx: ContextFace): void {
       focus?.focus()
     }, [open, waiting])
     if (!state) return <style>{css}</style>
-    const { kind: phase, target } = state
+    const { kind: phase, target, destination } = state
     const retry = 'retryInstall' in state && state.retryInstall === true
+    const moving = destination !== target.spec
     const showSource = phase === 'confirm' || retry || phase === 'removeFailed' || phase === 'installFailed'
     return <>
       <style>{css}</style>
@@ -173,17 +225,20 @@ export function apply(ctx: ContextFace): void {
         <h3 id={`${NS}-title`}>{t('reload')}</h3>
         <p><strong>{target.name}</strong></p>
         <p ref={status} id={`${NS}-status`} role="status" tabIndex={-1}>{t(phase)}</p>
-        {phase === 'confirm' && /\.(?:tgz|tar\.gz)$/i.test(target.spec) ? <p>{t('archiveVersion')}</p> : null}
-        {showSource ? <code>{target.spec}</code> : null}
+        {phase === 'confirm' && (/\.(?:tgz|tar\.gz)$/i.test(destination)
+          ? <p>{t('archiveVersion')}</p> : moving && <p>{t('directoryCheck')}</p>)}
+        {showSource ? <code>{destination}</code> : null}
         {'detail' in state && state.detail ? <p>{state.detail}</p> : null}
-        {retry ? <p>{t('recovery')}</p> : null}
+        {retry && moving && <p>{t('restoreSource')}<br /><code>{target.spec}</code></p>}
         <footer>
           {!waiting && <button type="button" className="dsh-local-button" ref={dismiss} autoFocus
             onClick={() => dialog.set(null)}>{t(phase === 'confirm' ? 'cancel' : 'close')}</button>}
           {phase === 'confirm' && <button type="button" className="dsh-local-button dsh-local-destructive"
-            onClick={() => { void run(target) }}>{t('confirmAction')}</button>}
+            onClick={() => { void run(state) }}>{t('confirmAction')}</button>}
+          {retry && moving && <button type="button" className="dsh-local-button"
+            onClick={() => { void run(state, target.spec) }}>{t('restoreSource')}</button>}
           {retry && <button type="button" className="dsh-local-button"
-            onClick={() => { void run(target, true) }}>{t('retry')}</button>}
+            onClick={() => { void run(state) }}>{t('retry')}</button>}
         </footer>
       </dialog>
     </>
@@ -197,11 +252,11 @@ export function apply(ctx: ContextFace): void {
       if (inventory.get().length > 0 || pending !== undefined) refresh()
     })
     const badge = ctx.slots.inject('plugins.detail.badge', () => ctx.slots.register({ name: 'plugins.detail.badge', id: NS }, Badge))
-    const button = ctx.slots.inject('plugins.detail.actions', () => ctx.slots.register({ name: 'plugins.detail.actions', id: NS }, ReloadButton))
+    const section = ctx.slots.inject('plugins.detail.section', () => ctx.slots.register({ name: 'plugins.detail.section', id: NS }, ReloadSection))
     const overlay = ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: NS }, Overlay))
     return () => {
       disposed = true
-      badge(); button(); overlay(); changed(); reset()
+      badge(); section(); overlay(); changed(); reset()
     }
   }, `${NS}: panel entries`)
 }
