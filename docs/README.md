@@ -1,5 +1,6 @@
 # 项目文档
 
+`plugins.tab` 提供本地插件卡片，卡片用 `openPackage` 打开原生详情页。
 `plugins.detail.badge` 和 `plugins.detail.section` 分别放置详情徽章和来源编辑行。
 重装经过现有插件管理权限检查，进度弹窗放在 `shell.overlay` 中，因此目标插件从面板移除时，弹窗仍能显示结果。
 来源和启用状态以 Host 返回的已安装清单为准。

@@ -141,6 +141,9 @@ var en = {
   badge: "Local",
   reload: "Destructive reload",
   confirm: "Uninstall this plugin and reinstall it from the local source below. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.",
+  listLoading: "Loading local plugins\u2026",
+  listEmpty: "No locally installed plugins.",
+  listError: "Could not load local plugins.",
   sourceLabel: "Local source",
   editSource: "Edit source",
   invalidSource: "Enter an absolute local path, optionally prefixed with link: or file:.",
@@ -169,6 +172,9 @@ var LABELS = {
     badge: "\u672C\u5730",
     reload: "\u7834\u574F\u6027\u91CD\u8F7D",
     confirm: "\u5C06\u5378\u8F7D\u6B64\u63D2\u4EF6\uFF0C\u518D\u4ECE\u4E0B\u65B9\u7684\u672C\u5730\u6765\u6E90\u91CD\u65B0\u5B89\u88C5\u3002\u63D2\u4EF6\u4F1A\u6682\u65F6\u505C\u6B62\u8FD0\u884C\uFF0C\u8BF7\u4FDD\u6301\u6B64\u7A97\u53E3\u6253\u5F00\uFF0C\u76F4\u5230\u64CD\u4F5C\u5B8C\u6210\u3002 \u91CD\u88C5\u5931\u8D25\u65F6\uFF0C\u63D2\u4EF6\u53EF\u80FD\u4F1A\u5904\u4E8E\u672A\u5B89\u88C5\u72B6\u6001\u3002",
+    listLoading: "\u6B63\u5728\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u2026",
+    listEmpty: "\u6682\u65E0\u672C\u5730\u5B89\u88C5\u7684\u63D2\u4EF6\u3002",
+    listError: "\u65E0\u6CD5\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u3002",
     sourceLabel: "\u672C\u5730\u6765\u6E90\u5730\u5740",
     editSource: "\u7F16\u8F91\u6765\u6E90\u5730\u5740",
     invalidSource: "\u8BF7\u8F93\u5165\u7EDD\u5BF9\u8DEF\u5F84\uFF0C\u53EF\u52A0 link: \u6216 file: \u524D\u7F00\u3002",
@@ -195,6 +201,9 @@ var LABELS = {
     badge: "\u30ED\u30FC\u30AB\u30EB",
     reload: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB",
     confirm: "\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3001\u4E0B\u8A18\u306E\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9\u304B\u3089\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3059\u3002\u51E6\u7406\u304C\u7D42\u308F\u308B\u307E\u3067\u3053\u306E\u30A6\u30A3\u30F3\u30C9\u30A6\u3092\u958B\u3044\u305F\u307E\u307E\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002 \u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u306B\u5931\u6557\u3059\u308B\u3068\u524A\u9664\u3055\u308C\u305F\u307E\u307E\u306B\u306A\u308B\u3053\u3068\u304C\u3042\u308A\u307E\u3059\u3002",
+    listLoading: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026",
+    listEmpty: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+    listError: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
     sourceLabel: "\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9",
     editSource: "\u30BD\u30FC\u30B9\u3092\u7DE8\u96C6",
     invalidSource: "\u30ED\u30FC\u30AB\u30EB\u306E\u7D76\u5BFE\u30D1\u30B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002link: \u307E\u305F\u306F file: \u306F\u7701\u7565\u3067\u304D\u307E\u3059\u3002",
@@ -221,6 +230,9 @@ var LABELS = {
     badge: "Lokal",
     reload: "Neu installieren",
     confirm: "Das Plugin wird deinstalliert und aus der unten genannten lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss ge\xF6ffnet. Wenn die Neuinstallation fehlschl\xE4gt, kann das Plugin deinstalliert bleiben.",
+    listLoading: "Lokale Plugins werden geladen\u2026",
+    listEmpty: "Keine lokal installierten Plugins.",
+    listError: "Lokale Plugins konnten nicht geladen werden.",
     sourceLabel: "Lokale Quelle",
     editSource: "Quelle bearbeiten",
     invalidSource: "Gib einen absoluten lokalen Pfad ein. link: und file: sind optional.",
@@ -247,6 +259,9 @@ var LABELS = {
     badge: "Local",
     reload: "Reinstalar",
     confirm: "Se desinstalar\xE1 el complemento y se instalar\xE1 de nuevo desde la fuente local indicada abajo. Mant\xE9n abierta esta ventana hasta que termine. Si falla la reinstalaci\xF3n, el complemento puede seguir desinstalado.",
+    listLoading: "Cargando complementos locales\u2026",
+    listEmpty: "No hay complementos instalados localmente.",
+    listError: "No se pudieron cargar los complementos locales.",
     sourceLabel: "Fuente local",
     editSource: "Editar fuente",
     invalidSource: "Introduce una ruta local absoluta. Los prefijos link: y file: son opcionales.",
@@ -273,6 +288,9 @@ var LABELS = {
     badge: "Local",
     reload: "R\xE9installer",
     confirm: "L\u2019extension sera d\xE9sinstall\xE9e puis r\xE9install\xE9e depuis la source locale ci-dessous. Gardez cette fen\xEAtre ouverte jusqu\u2019\xE0 la fin. Si la r\xE9installation \xE9choue, l\u2019extension peut rester d\xE9sinstall\xE9e.",
+    listLoading: "Chargement des extensions locales\u2026",
+    listEmpty: "Aucune extension install\xE9e localement.",
+    listError: "Impossible de charger les extensions locales.",
     sourceLabel: "Source locale",
     editSource: "Modifier la source",
     invalidSource: "Saisissez un chemin local absolu. Les pr\xE9fixes link: et file: sont facultatifs.",
@@ -299,6 +317,9 @@ var LABELS = {
     badge: "Local",
     reload: "Reinstalar",
     confirm: "O plugin ser\xE1 desinstalado e reinstalado a partir da origem local abaixo. Mantenha esta janela aberta at\xE9 o fim da opera\xE7\xE3o. Se a reinstala\xE7\xE3o falhar, o plugin pode continuar desinstalado.",
+    listLoading: "Carregando plugins locais\u2026",
+    listEmpty: "Nenhum plugin instalado localmente.",
+    listError: "N\xE3o foi poss\xEDvel carregar os plugins locais.",
     sourceLabel: "Origem local",
     editSource: "Editar origem",
     invalidSource: "Insira um caminho local absoluto. Os prefixos link: e file: s\xE3o opcionais.",
@@ -325,6 +346,9 @@ var LABELS = {
     badge: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439",
     reload: "\u041F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
     confirm: "\u041F\u043B\u0430\u0433\u0438\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u043D\u0438\u0436\u0435 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043E\u043A\u043D\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438. \u0415\u0441\u043B\u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u043D\u0435 \u0443\u0434\u0430\u0441\u0442\u0441\u044F, \u043F\u043B\u0430\u0433\u0438\u043D \u043C\u043E\u0436\u0435\u0442 \u043E\u0441\u0442\u0430\u0442\u044C\u0441\u044F \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u043C.",
+    listLoading: "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432\u2026",
+    listEmpty: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u043E \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432 \u043D\u0435\u0442.",
+    listError: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u044B.",
     sourceLabel: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
     editSource: "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
     invalidSource: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0431\u0441\u043E\u043B\u044E\u0442\u043D\u044B\u0439 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u043F\u0443\u0442\u044C. \u041F\u0440\u0435\u0444\u0438\u043A\u0441\u044B link: \u0438 file: \u043D\u0435\u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B.",
@@ -374,9 +398,42 @@ var css = `
 .dsh-local-badge {
   display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px;
   font-size: 10px; line-height: 1; font-weight: 500; white-space: nowrap;
-  color: var(--dsw-alias-brand-primary);
-  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);
 }
+/* Match the built-in plugin card's spacing and typography. */
+.dsh-local-list { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.dsh-local-card {
+  position: relative; display: flex; align-items: center; gap: 14px;
+  min-width: 0; margin: 0 -8px; padding: 8px; border-radius: var(--dsw-radius-xl, 16px);
+}
+.dsh-local-card:active { background: var(--dsw-alias-interactive-bg-active); }
+@media (hover: hover) { .dsh-local-card:hover { background: var(--dsw-alias-interactive-bg-hover); } }
+.dsh-local-card-icon {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border: .5px solid var(--dsw-alias-border-l3);
+  border-radius: var(--dsw-radius-lg, 14px); color: var(--dsw-alias-label-secondary);
+}
+.dsh-local-card-icon img { object-fit: contain; }
+.dsh-local-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dsh-local-card-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.dsh-local-card-open {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 0; border: 0; background: transparent; color: inherit;
+  font: inherit; font-size: 14px; line-height: 20px; font-weight: 500; text-align: start; cursor: pointer;
+}
+.dsh-local-card-open::after { content: ''; position: absolute; inset: 0; border-radius: var(--dsw-radius-xl, 16px); }
+.dsh-local-card-open:focus-visible { outline: none; }
+.dsh-local-card-open:focus-visible::after {
+  border-radius: var(--dsw-radius-xl, 16px);
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary));
+  outline-offset: 2px;
+}
+.dsh-local-card-description {
+  font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-tertiary);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
+}
+.dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
 .dsh-local-button {
   font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
   border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1); cursor: pointer;
@@ -410,12 +467,14 @@ var css = `
 `;
 function apply(ctx) {
   const manager = ctx.remote.pluginManager;
-  const inventory = store([]);
+  const inventory = store(null);
+  let inventoryRequested = false;
   const dialog = store(null);
   let pending;
   let requested = false;
   let disposed = false;
   function refresh() {
+    inventoryRequested = true;
     requested = true;
     if (pending !== void 0) return;
     pending = (async () => {
@@ -423,23 +482,27 @@ function apply(ctx) {
         requested = false;
         try {
           const answer = await manager.listBundles();
-          if (!disposed) inventory.set(answer.ok ? answer.value : []);
+          if (!disposed) inventory.set(answer.ok ? answer.value : "error");
         } catch {
-          if (!disposed) inventory.set([]);
+          if (!disposed) inventory.set("error");
         }
       } while (requested && !disposed);
     })().finally(() => {
       pending = void 0;
     });
   }
-  function useBundle({ subject, useRemoteAccess }) {
+  function useInventory(useRemoteAccess, view) {
     const canList = useRemoteAccess("pluginManager/listBundles");
     const bundles = (0, import_react.useSyncExternalStore)(inventory.subscribe, inventory.get);
-    const name = subject.kind === "item" ? void 0 : subject.pkg.name;
     (0, import_react.useEffect)(() => {
-      if (canList && name) refresh();
-    }, [canList, name]);
-    return canList && name ? bundles.find((bundle) => bundle.name === name) : void 0;
+      if (canList && view !== void 0) refresh();
+    }, [canList, view]);
+    return canList ? bundles : "error";
+  }
+  function useBundle({ subject, useRemoteAccess }) {
+    const name = subject.kind === "item" ? void 0 : subject.pkg.name;
+    const bundles = useInventory(useRemoteAccess, name);
+    return bundles && bundles !== "error" ? bundles.find((bundle) => bundle.name === name) : void 0;
   }
   ctx.effect(() => ctx.locale.register(NS, LABELS), `${NS}: locale`);
   const t = ctx.locale.bind(NS);
@@ -451,6 +514,49 @@ function apply(ctx) {
     const bundle = useBundle(props);
     useLocale();
     return bundle && localSource(bundle) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") }) : null;
+  }
+  function LocalCard({ bundle, title, onOpen }) {
+    const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description;
+    const icon = bundle.meta?.icon;
+    const [failedIcon, setFailedIcon] = (0, import_react.useState)();
+    const descriptionId = (0, import_react.useId)();
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { className: "dsh-local-card", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-icon", "aria-hidden": "true", children: icon && icon !== failedIcon ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", { src: icon, width: "36", height: "36", alt: "", onError: () => setFailedIcon(icon) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { width: "36", height: "36", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" }) }) }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-main", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-title", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+            "button",
+            {
+              type: "button",
+              className: "dsh-local-card-open",
+              "aria-describedby": description ? descriptionId : void 0,
+              onClick: onOpen,
+              children: title
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") })
+        ] }),
+        description && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-description", id: descriptionId, children: description })
+      ] })
+    ] });
+  }
+  function LocalTab({ openPackage, useRemoteAccess }) {
+    const bundles = useInventory(useRemoteAccess, NS);
+    const { active } = useLocale();
+    if (bundles === "error") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listError") });
+    if (bundles === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listLoading") });
+    const collator = new Intl.Collator(active);
+    const local = bundles.filter((bundle) => localSource(bundle) !== void 0).map((bundle) => ({ bundle, title: bundle.meta?.title ? ctx.locale.resolveText(bundle.meta.title) : bundle.name })).sort((left, right) => collator.compare(left.title, right.title));
+    if (local.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listEmpty") });
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", { className: "dsh-local-list", children: local.map(({ bundle, title }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+      LocalCard,
+      {
+        bundle,
+        title,
+        onOpen: () => openPackage(bundle.name)
+      },
+      bundle.name
+    )) });
   }
   function ReloadSection(props) {
     const bundle = useBundle(props);
@@ -638,19 +744,25 @@ function apply(ctx) {
     ] });
   }
   ctx.effect(() => {
-    const changed = ctx.remote.$on("plugin-manager/changed", () => {
-      if (inventory.get().length > 0 || pending !== void 0) refresh();
-    });
-    const reset = ctx.on("connection/reset", () => {
-      if (inventory.get().length > 0 || pending !== void 0) refresh();
-    });
+    const refreshIfRequested = () => {
+      if (inventoryRequested) refresh();
+    };
+    const changed = ctx.remote.$on("plugin-manager/changed", refreshIfRequested);
+    const reset = ctx.on("connection/reset", refreshIfRequested);
     const badge = ctx.slots.inject("plugins.detail.badge", () => ctx.slots.register({ name: "plugins.detail.badge", id: NS }, Badge));
     const section = ctx.slots.inject("plugins.detail.section", () => ctx.slots.register({ name: "plugins.detail.section", id: NS }, ReloadSection));
+    const tab = ctx.slots.inject("plugins.tab", () => ctx.slots.register({
+      name: "plugins.tab",
+      id: NS,
+      label: () => t("badge"),
+      order: -10
+    }, LocalTab));
     const overlay = ctx.slots.inject("shell.overlay", () => ctx.slots.register({ name: "shell.overlay", id: NS }, Overlay));
     return () => {
       disposed = true;
       badge();
       section();
+      tab();
       overlay();
       changed();
       reset();

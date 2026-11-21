@@ -6,10 +6,10 @@ import type {} from '@deepseek-ai/dsh-plugin-manager/remote'
 import type {} from '@deepseek-ai/dsh-api-remote-access/client'
 import type { BundleInfo, ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
 import type { LocaleRuntime } from '@deepseek-ai/dsh-client-locale/client'
-import type { PluginDetailProps } from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
+import type { PluginDetailProps, PluginTabProps } from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 import type { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { installSource, localSource, reload, reloadTarget, type Outcome, type ReloadTarget } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
@@ -52,9 +52,42 @@ const css = `
 .dsh-local-badge {
   display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px;
   font-size: 10px; line-height: 1; font-weight: 500; white-space: nowrap;
-  color: var(--dsw-alias-brand-primary);
-  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 12%, transparent);
+  color: var(--dsw-alias-state-business-primary);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);
 }
+/* Match the built-in plugin card's spacing and typography. */
+.dsh-local-list { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
+.dsh-local-card {
+  position: relative; display: flex; align-items: center; gap: 14px;
+  min-width: 0; margin: 0 -8px; padding: 8px; border-radius: var(--dsw-radius-xl, 16px);
+}
+.dsh-local-card:active { background: var(--dsw-alias-interactive-bg-active); }
+@media (hover: hover) { .dsh-local-card:hover { background: var(--dsw-alias-interactive-bg-hover); } }
+.dsh-local-card-icon {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border: .5px solid var(--dsw-alias-border-l3);
+  border-radius: var(--dsw-radius-lg, 14px); color: var(--dsw-alias-label-secondary);
+}
+.dsh-local-card-icon img { object-fit: contain; }
+.dsh-local-card-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dsh-local-card-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.dsh-local-card-open {
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 0; border: 0; background: transparent; color: inherit;
+  font: inherit; font-size: 14px; line-height: 20px; font-weight: 500; text-align: start; cursor: pointer;
+}
+.dsh-local-card-open::after { content: ''; position: absolute; inset: 0; border-radius: var(--dsw-radius-xl, 16px); }
+.dsh-local-card-open:focus-visible { outline: none; }
+.dsh-local-card-open:focus-visible::after {
+  border-radius: var(--dsw-radius-xl, 16px);
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary));
+  outline-offset: 2px;
+}
+.dsh-local-card-description {
+  font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-tertiary);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
+}
+.dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
 .dsh-local-button {
   font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
   border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1); cursor: pointer;
@@ -89,13 +122,15 @@ const css = `
 
 export function apply(ctx: ContextFace): void {
   const manager = ctx.remote.pluginManager
-  const inventory = store<readonly BundleInfo[]>([])
+  const inventory = store<readonly BundleInfo[] | 'error' | null>(null)
+  let inventoryRequested = false
   const dialog = store<DialogState | null>(null)
   let pending: Promise<void> | undefined
   let requested = false
   let disposed = false
 
   function refresh(): void {
+    inventoryRequested = true
     requested = true
     if (pending !== undefined) return
     pending = (async () => {
@@ -103,20 +138,25 @@ export function apply(ctx: ContextFace): void {
         requested = false
         try {
           const answer = await manager.listBundles()
-          if (!disposed) inventory.set(answer.ok ? answer.value : [])
+          if (!disposed) inventory.set(answer.ok ? answer.value : 'error')
         } catch {
-          if (!disposed) inventory.set([])
+          if (!disposed) inventory.set('error')
         }
       } while (requested && !disposed)
     })().finally(() => { pending = undefined })
   }
 
-  function useBundle({ subject, useRemoteAccess }: DetailProps): BundleInfo | undefined {
+  function useInventory(useRemoteAccess: DetailProps['useRemoteAccess'], view: string | undefined) {
     const canList = useRemoteAccess('pluginManager/listBundles')
     const bundles = useSyncExternalStore(inventory.subscribe, inventory.get)
+    useEffect(() => { if (canList && view !== undefined) refresh() }, [canList, view])
+    return canList ? bundles : 'error'
+  }
+
+  function useBundle({ subject, useRemoteAccess }: DetailProps): BundleInfo | undefined {
     const name = subject.kind === 'item' ? undefined : subject.pkg.name
-    useEffect(() => { if (canList && name) refresh() }, [canList, name])
-    return canList && name ? bundles.find(bundle => bundle.name === name) : undefined
+    const bundles = useInventory(useRemoteAccess, name)
+    return bundles && bundles !== 'error' ? bundles.find(bundle => bundle.name === name) : undefined
   }
 
   ctx.effect(() => ctx.locale.register(NS, LABELS), `${NS}: locale`)
@@ -129,6 +169,46 @@ export function apply(ctx: ContextFace): void {
     const bundle = useBundle(props)
     useLocale()
     return bundle && localSource(bundle) ? <span className="dsh-local-badge">{t('badge')}</span> : null
+  }
+
+  function LocalCard({ bundle, title, onOpen }: { bundle: BundleInfo; title: string; onOpen: () => void }) {
+    const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description
+    const icon = bundle.meta?.icon
+    const [failedIcon, setFailedIcon] = useState<string>()
+    const descriptionId = useId()
+    return <li className="dsh-local-card">
+      <span className="dsh-local-card-icon" aria-hidden="true">
+        {icon && icon !== failedIcon
+          ? <img src={icon} width="36" height="36" alt="" onError={() => setFailedIcon(icon)} />
+          : <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+            <path d="M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" />
+          </svg>}
+      </span>
+      <div className="dsh-local-card-main">
+        <div className="dsh-local-card-title">
+          <button type="button" className="dsh-local-card-open" aria-describedby={description ? descriptionId : undefined}
+            onClick={onOpen}>{title}</button>
+          <span className="dsh-local-badge">{t('badge')}</span>
+        </div>
+        {description && <span className="dsh-local-card-description" id={descriptionId}>{description}</span>}
+      </div>
+    </li>
+  }
+
+  function LocalTab({ openPackage, useRemoteAccess }: PluginTabProps & Pick<DetailProps, 'useRemoteAccess'>) {
+    const bundles = useInventory(useRemoteAccess, NS)
+    const { active } = useLocale()
+    if (bundles === 'error') return <p className="dsh-local-list-status" role="status">{t('listError')}</p>
+    if (bundles === null) return <p className="dsh-local-list-status" role="status">{t('listLoading')}</p>
+    const collator = new Intl.Collator(active)
+    const local = bundles.filter(bundle => localSource(bundle) !== undefined)
+      .map(bundle => ({ bundle, title: bundle.meta?.title ? ctx.locale.resolveText(bundle.meta.title) : bundle.name }))
+      .sort((left, right) => collator.compare(left.title, right.title))
+    if (local.length === 0) return <p className="dsh-local-list-status" role="status">{t('listEmpty')}</p>
+    return <ul className="dsh-local-list">
+      {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title}
+        onOpen={() => openPackage(bundle.name)} />)}
+    </ul>
   }
 
   function ReloadSection(props: DetailProps) {
@@ -245,18 +325,18 @@ export function apply(ctx: ContextFace): void {
   }
 
   ctx.effect(() => {
-    const changed = ctx.remote.$on('plugin-manager/changed', () => {
-      if (inventory.get().length > 0 || pending !== undefined) refresh()
-    })
-    const reset = ctx.on('connection/reset', () => {
-      if (inventory.get().length > 0 || pending !== undefined) refresh()
-    })
+    const refreshIfRequested = () => { if (inventoryRequested) refresh() }
+    const changed = ctx.remote.$on('plugin-manager/changed', refreshIfRequested)
+    const reset = ctx.on('connection/reset', refreshIfRequested)
     const badge = ctx.slots.inject('plugins.detail.badge', () => ctx.slots.register({ name: 'plugins.detail.badge', id: NS }, Badge))
     const section = ctx.slots.inject('plugins.detail.section', () => ctx.slots.register({ name: 'plugins.detail.section', id: NS }, ReloadSection))
+    const tab = ctx.slots.inject('plugins.tab', () => ctx.slots.register({
+      name: 'plugins.tab', id: NS, label: () => t('badge'), order: -10,
+    }, LocalTab))
     const overlay = ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: NS }, Overlay))
     return () => {
       disposed = true
-      badge(); section(); overlay(); changed(); reset()
+      badge(); section(); tab(); overlay(); changed(); reset()
     }
   }, `${NS}: panel entries`)
 }

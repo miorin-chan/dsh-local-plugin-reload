@@ -1,5 +1,6 @@
 const en = {
   badge: 'Local', reload: 'Destructive reload', confirm: 'Uninstall this plugin and reinstall it from the local source below. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.',
+  listLoading: "Loading local plugins…", listEmpty: "No locally installed plugins.", listError: "Could not load local plugins.",
   sourceLabel: "Local source", editSource: "Edit source",
   invalidSource: "Enter an absolute local path, optionally prefixed with link: or file:.", restoreSource: "Restore from original source",
   archiveVersion: 'A local archive must still contain the currently installed version.',
@@ -16,6 +17,7 @@ export const LABELS = {
   en,
   zh: {
     badge: '本地', reload: '破坏性重载', confirm: '将卸载此插件，再从下方的本地来源重新安装。插件会暂时停止运行，请保持此窗口打开，直到操作完成。 重装失败时，插件可能会处于未安装状态。',
+    listLoading: "正在加载本地插件…", listEmpty: "暂无本地安装的插件。", listError: "无法加载本地插件。",
     sourceLabel: "本地来源地址", editSource: "编辑来源地址",
     invalidSource: "请输入绝对路径，可加 link: 或 file: 前缀。", restoreSource: "从原地址恢复",
     archiveVersion: '本地压缩包必须仍包含当前安装的版本。',
@@ -29,6 +31,7 @@ export const LABELS = {
   },
   ja: {
     badge: 'ローカル', reload: '再インストール', confirm: 'プラグインをアンインストールし、下記のローカルソースから再インストールします。処理が終わるまでこのウィンドウを開いたままにしてください。 再インストールに失敗すると削除されたままになることがあります。',
+    listLoading: "ローカルプラグインを読み込み中…", listEmpty: "ローカルプラグインはありません。", listError: "ローカルプラグインを読み込めませんでした。",
     sourceLabel: "ローカルソース", editSource: "ソースを編集",
     invalidSource: "ローカルの絶対パスを入力してください。link: または file: は省略できます。", restoreSource: "元のソースから復元",
     archiveVersion: 'ローカルアーカイブには現在のバージョンが必要です。',
@@ -42,6 +45,7 @@ export const LABELS = {
   },
   de: {
     badge: 'Lokal', reload: 'Neu installieren', confirm: 'Das Plugin wird deinstalliert und aus der unten genannten lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss geöffnet. Wenn die Neuinstallation fehlschlägt, kann das Plugin deinstalliert bleiben.',
+    listLoading: "Lokale Plugins werden geladen…", listEmpty: "Keine lokal installierten Plugins.", listError: "Lokale Plugins konnten nicht geladen werden.",
     sourceLabel: "Lokale Quelle", editSource: "Quelle bearbeiten",
     invalidSource: "Gib einen absoluten lokalen Pfad ein. link: und file: sind optional.", restoreSource: "Aus ursprünglicher Quelle wiederherstellen",
     archiveVersion: 'Das lokale Archiv muss weiterhin die installierte Version enthalten.',
@@ -55,6 +59,7 @@ export const LABELS = {
   },
   es: {
     badge: 'Local', reload: 'Reinstalar', confirm: 'Se desinstalará el complemento y se instalará de nuevo desde la fuente local indicada abajo. Mantén abierta esta ventana hasta que termine. Si falla la reinstalación, el complemento puede seguir desinstalado.',
+    listLoading: "Cargando complementos locales…", listEmpty: "No hay complementos instalados localmente.", listError: "No se pudieron cargar los complementos locales.",
     sourceLabel: "Fuente local", editSource: "Editar fuente",
     invalidSource: "Introduce una ruta local absoluta. Los prefijos link: y file: son opcionales.", restoreSource: "Restaurar desde la fuente original",
     archiveVersion: 'El archivo local debe conservar la versión instalada.',
@@ -68,6 +73,7 @@ export const LABELS = {
   },
   fr: {
     badge: 'Local', reload: 'Réinstaller', confirm: 'L’extension sera désinstallée puis réinstallée depuis la source locale ci-dessous. Gardez cette fenêtre ouverte jusqu’à la fin. Si la réinstallation échoue, l’extension peut rester désinstallée.',
+    listLoading: "Chargement des extensions locales…", listEmpty: "Aucune extension installée localement.", listError: "Impossible de charger les extensions locales.",
     sourceLabel: "Source locale", editSource: "Modifier la source",
     invalidSource: "Saisissez un chemin local absolu. Les préfixes link: et file: sont facultatifs.", restoreSource: "Restaurer depuis la source d’origine",
     archiveVersion: 'L’archive locale doit toujours contenir la version installée.',
@@ -81,6 +87,7 @@ export const LABELS = {
   },
   pt: {
     badge: 'Local', reload: 'Reinstalar', confirm: 'O plugin será desinstalado e reinstalado a partir da origem local abaixo. Mantenha esta janela aberta até o fim da operação. Se a reinstalação falhar, o plugin pode continuar desinstalado.',
+    listLoading: "Carregando plugins locais…", listEmpty: "Nenhum plugin instalado localmente.", listError: "Não foi possível carregar os plugins locais.",
     sourceLabel: "Origem local", editSource: "Editar origem",
     invalidSource: "Insira um caminho local absoluto. Os prefixos link: e file: são opcionais.", restoreSource: "Restaurar a partir da origem original",
     archiveVersion: 'O arquivo local ainda precisa conter a versão instalada.',
@@ -94,6 +101,7 @@ export const LABELS = {
   },
   ru: {
     badge: 'Локальный', reload: 'Переустановить', confirm: 'Плагин будет удалён и установлен из указанного ниже локального источника. Оставьте окно открытым до завершения операции. Если переустановка не удастся, плагин может остаться удалённым.',
+    listLoading: "Загрузка локальных плагинов…", listEmpty: "Локально установленных плагинов нет.", listError: "Не удалось загрузить локальные плагины.",
     sourceLabel: "Локальный источник", editSource: "Изменить источник",
     invalidSource: "Введите абсолютный локальный путь. Префиксы link: и file: необязательны.", restoreSource: "Восстановить из исходного источника",
     archiveVersion: 'Локальный архив должен содержать установленную версию.',
