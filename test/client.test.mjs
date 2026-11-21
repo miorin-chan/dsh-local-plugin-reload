@@ -27,12 +27,13 @@ test('registers the Local tab, detail extensions and dialog, then releases all e
       },
       bind: () => key => key,
     },
-    slots: { inject: (_name, mount) => mount(), register: options => register(options.name) },
+    slots: { inject: (_name, mount) => mount(), register: options => register(`${options.name}/${options.id}`) },
     remote: { pluginManager: {}, $on: register },
   })
   assert.deepEqual([...active].sort(), [
     'connection/reset', 'dsh-local-plugin-reload', 'plugin-manager/changed',
-    'plugins.detail.actions', 'plugins.detail.badge', 'plugins.tab', 'shell.overlay',
+    'plugins.detail.badge/dsh-local-plugin-reload', 'plugins.detail.badge/dsh-local-plugin-reload.reload',
+    'plugins.tab/dsh-local-plugin-reload', 'shell.overlay/dsh-local-plugin-reload',
   ])
   for (const dispose of effects.reverse()) dispose()
   assert.equal(active.size, 0)

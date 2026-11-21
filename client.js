@@ -442,21 +442,16 @@ var css = `
 .dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
 .dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
-.dsh-local-source-section { width: clamp(112px, calc(100vw - 720px), 380px); -webkit-app-region: no-drag; }
-.dsh-local-source-section label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500; }
-.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.dsh-local-source-section { flex: 0 0 100%; min-width: 0; margin: 8px 0; }
+.dsh-local-source-section label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
 .dsh-local-source-row button[type='submit'] { max-width: 100%; white-space: normal; }
 .dsh-local-source-input {
-  flex: 1 1 72px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+  flex: 1 1 120px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
   border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
 }
 .dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
-@media (max-width: 430px) {
-  .dsh-local-source-section { width: clamp(48px, calc(100vw - 300px), 112px); overflow-wrap: anywhere; }
-  .dsh-local-source-input { flex-basis: 38px; }
-  .dsh-local-source-row button[type='submit'] { padding-inline: 4px; overflow-wrap: anywhere; }
-}
 .dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
@@ -756,9 +751,10 @@ function apply(ctx) {
     const changed = ctx.remote.$on("plugin-manager/changed", refreshIfRequested);
     const reset = ctx.on("connection/reset", refreshIfRequested);
     const badge = ctx.slots.inject("plugins.detail.badge", () => ctx.slots.register({ name: "plugins.detail.badge", id: NS }, Badge));
-    const reloadAction = ctx.slots.inject("plugins.detail.actions", () => ctx.slots.register({
-      name: "plugins.detail.actions",
-      id: NS
+    const reloadRow = ctx.slots.inject("plugins.detail.badge", () => ctx.slots.register({
+      name: "plugins.detail.badge",
+      id: `${NS}.reload`,
+      order: 100
     }, ReloadSection));
     const tab = ctx.slots.inject("plugins.tab", () => ctx.slots.register({
       name: "plugins.tab",
@@ -770,7 +766,7 @@ function apply(ctx) {
     return () => {
       disposed = true;
       badge();
-      reloadAction();
+      reloadRow();
       tab();
       overlay();
       changed();
