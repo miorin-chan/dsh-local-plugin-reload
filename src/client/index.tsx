@@ -106,6 +106,11 @@ const css = `
   background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
 }
 .dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
+@media (max-width: 430px) {
+  .dsh-local-source-section { width: clamp(48px, calc(100vw - 300px), 112px); overflow-wrap: anywhere; }
+  .dsh-local-source-input { flex-basis: 38px; }
+  .dsh-local-source-row button[type='submit'] { padding-inline: 4px; overflow-wrap: anywhere; }
+}
 .dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
