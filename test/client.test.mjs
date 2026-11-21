@@ -8,7 +8,7 @@ globalThis.window = { __ModuleLoader__: { load(entry) { registration = entry } }
 try { await import('../client.js') } finally { globalThis.window = previousWindow }
 const plugin = registration.factory(createRequire(import.meta.url))
 
-test('registers both detail extensions and the dialog, then releases all effects on unload', () => {
+test('registers the local list, detail extensions and dialog, then releases all effects on unload', () => {
   assert.equal(registration.id, 'dsh-local-plugin-reload')
   assert.ok(plugin.inject.includes('remote.pluginManager'))
   const effects = []
@@ -32,7 +32,7 @@ test('registers both detail extensions and the dialog, then releases all effects
   })
   assert.deepEqual([...active].sort(), [
     'connection/reset', 'dsh-local-plugin-reload', 'plugin-manager/changed',
-    'plugins.detail.actions', 'plugins.detail.badge', 'shell.overlay',
+    'plugins.detail.badge', 'plugins.detail.section', 'plugins.tab', 'shell.overlay',
   ])
   for (const dispose of effects.reverse()) dispose()
   assert.equal(active.size, 0)

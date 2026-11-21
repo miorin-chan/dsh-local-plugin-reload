@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { localSource, reload, reloadTarget } from '../lib/reload.js'
+import { installSource, localSource, reload, reloadTarget } from '../lib/reload.js'
 
 const bundle = {
   name: 'local-example', source: 'link:/work/local example', installed: true,
@@ -8,17 +8,17 @@ const bundle = {
 }
 const target = reloadTarget(bundle)
 const ok = value => ({ ok: true, value })
-const accepted = ok({ status: 'accepted', kind: 'path', name: bundle.name, version: '1.1.0' })
+const accepted = ok({ status: 'accepted', kind: 'path', bundle: true, name: bundle.name, version: '1.1.0' })
 const alreadyInstalled = ok({ status: 'refused', problem: 'already-installed', reason: `${bundle.name} is already installed` })
 
-function fixture() {
+function fixture(destination = bundle.source) {
   const stages = []
   const calls = []
   let installed = true
   const service = {
     async listBundles() { return ok(installed ? [bundle] : []) },
     async inspect(spec, options) {
-      assert.equal(spec, bundle.source)
+      assert.equal(spec, destination)
       assert.deepEqual(options, {})
       return installed ? alreadyInstalled : accepted
     },
@@ -33,7 +33,7 @@ function fixture() {
       return ok({ application: 'applied' })
     },
   }
-  return { service, calls, stages, run: retry => reload(service, target, stage => stages.push(stage), retry) }
+  return { service, calls, stages, run: retry => reload(service, target, stage => stages.push(stage), retry, destination) }
 }
 
 test('local source covers linked and file dependencies and excludes registry, git and built-in bundles', () => {
@@ -56,6 +56,25 @@ test('uninstalls then reinstalls from the same spec with the prior enablement an
   assert.deepEqual(calls, [
     ['remove', bundle.name],
     ['install', bundle.source, { enabled: false, expected: { name: bundle.name, version: '1.1.0' } }],
+  ])
+})
+
+test('normalizes absolute destinations and rejects relative paths and remote specs', () => {
+  assert.equal(installSource(' /work/new location ', bundle.source), 'link:/work/new location')
+  assert.equal(installSource('/work/new.tgz', bundle.source), 'file:/work/new.tgz')
+  assert.equal(installSource('file:/work/copied folder', bundle.source), 'file:/work/copied folder')
+  for (const input of ['', '../plugin', 'https://example.com/plugin.tgz', 'file:../plugin', 'link:/one\n/two']) {
+    assert.equal(installSource(input, bundle.source), undefined)
+  }
+})
+
+test('reinstalls a bundle from a different local path and preserves its enablement', async () => {
+  const destination = 'link:/work/moved plugin'
+  const { calls, run } = fixture(destination)
+  assert.deepEqual(await run(), { kind: 'done' })
+  assert.deepEqual(calls, [
+    ['remove', bundle.name],
+    ['install', destination, { enabled: false, expected: { name: bundle.name, version: '1.1.0' } }],
   ])
 })
 
@@ -82,6 +101,18 @@ test('removal failure prevents installation', async () => {
   service.removeBundle = async () => ok({ application: 'failed', error: { code: 'bundle-in-use' } })
   assert.deepEqual(await run(), { kind: 'removeFailed', detail: 'bundle-in-use' })
   assert.deepEqual(calls, [])
+})
+
+test('offers recovery when removal succeeded but its remote reply was lost', async () => {
+  const { service, calls, run } = fixture()
+  const remove = service.removeBundle
+  service.removeBundle = async name => {
+    await remove(name)
+    throw new Error('connection lost')
+  }
+  assert.deepEqual(await run(), { kind: 'removeFailed', detail: 'connection lost', retryInstall: true })
+  assert.deepEqual(calls, [['remove', bundle.name]])
+  assert.deepEqual(await run(true), { kind: 'done' })
 })
 
 test('an activation failure after installing the files points back to the existing bundle', async () => {

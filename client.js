@@ -37,18 +37,37 @@ module.exports = __toCommonJS(index_exports);
 var import_react = require("react");
 
 // src/lib/reload.ts
+var LOCAL_SPEC = /^(link|file):((?:\/(?!\/)|\\\\|[a-z]:[/\\]).*)$/i;
+var ARCHIVE = /\.(?:tgz|tar\.gz)$/i;
 function localSource(bundle) {
   const spec = bundle.source;
-  return bundle.installed && bundle.availability !== "installation" && spec !== void 0 && /^(?:link|file):(?:[/\\]|[a-z]:[/\\])/i.test(spec) ? spec : void 0;
+  return bundle.installed && bundle.availability !== "installation" && spec !== void 0 && LOCAL_SPEC.test(spec) ? spec : void 0;
+}
+function installSource(input, original) {
+  const value = input.trim();
+  if (LOCAL_SPEC.test(value)) return value;
+  const protocol = ARCHIVE.test(value) || original.startsWith("file:") ? "file" : "link";
+  const spec = `${protocol}:${value}`;
+  return LOCAL_SPEC.test(spec) ? spec : void 0;
 }
 function reloadTarget(bundle) {
   const spec = localSource(bundle);
   if (spec === void 0 || !bundle.removable || bundle.readOnlyReason !== void 0 || bundle.name === "dsh-local-plugin-reload") return void 0;
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === void 0 ? {} : { version: bundle.version } };
 }
-async function reload(manager, target, stage, retryInstall = false) {
+async function reload(manager, target, stage, retryInstall = false, destination = target.spec) {
   let failure = "changed";
   let removed = retryInstall;
+  async function removalFailure(detail) {
+    try {
+      const current = await manager.listBundles();
+      if (current.ok && !current.value.some((bundle) => bundle.name === target.name && bundle.installed)) {
+        return { kind: "removeFailed", detail, retryInstall: true };
+      }
+    } catch {
+    }
+    return { kind: "removeFailed", detail };
+  }
   try {
     stage("checking");
     const inventory = await manager.listBundles();
@@ -59,13 +78,14 @@ async function reload(manager, target, stage, retryInstall = false) {
       return { kind: "changed" };
     }
     failure = "source";
-    const before = await manager.inspect(target.spec, {});
+    if (!LOCAL_SPEC.test(destination)) return { kind: failure, retryInstall: removed };
+    const before = await manager.inspect(destination, {});
     if (!before.ok) return { kind: failure, detail: before.error.message, retryInstall: removed };
     if (before.value.status === "refused") {
       const expectedRefusal = before.value.problem === "already-installed" && before.value.reason === `${target.name} is already installed`;
       if (retryInstall || !expectedRefusal) return { kind: failure, detail: before.value.reason, retryInstall: removed };
     }
-    if (before.value.status === "accepted" && before.value.kind !== "tarball" && before.value.name !== target.name) {
+    if (before.value.status === "accepted" && before.value.kind !== "tarball" && (before.value.kind !== "path" || before.value.name !== target.name || !before.value.version || before.value.bundle !== true)) {
       return { kind: failure, retryInstall: removed };
     }
     if (before.value.status === "accepted" && before.value.kind === "tarball" && target.version === void 0) {
@@ -75,24 +95,24 @@ async function reload(manager, target, stage, retryInstall = false) {
       failure = "removeFailed";
       stage("removing");
       const removal = await manager.removeBundle(target.name);
-      if (!removal.ok) return { kind: failure, detail: removal.error.message };
+      if (!removal.ok) return removalFailure(removal.error.message);
       if (removal.value.error || ["failed", "cancelled"].includes(removal.value.application)) {
         const detail = removal.value.error?.diagnostic ?? removal.value.error?.code ?? removal.value.application;
-        return { kind: failure, detail };
+        return removalFailure(detail);
       }
       removed = true;
     }
     failure = "installFailed";
     stage("installing");
-    const inspected = retryInstall ? before : await manager.inspect(target.spec, {});
+    const inspected = retryInstall ? before : await manager.inspect(destination, {});
     if (!inspected.ok) return { kind: failure, detail: inspected.error.message, retryInstall: removed };
     if (inspected.value.status === "refused") return { kind: failure, detail: inspected.value.reason, retryInstall: removed };
     const { kind, name, version } = inspected.value;
     const expectedVersion = kind === "tarball" ? target.version : version;
-    if (kind !== "tarball" && (kind !== "path" || name !== target.name) || !expectedVersion) {
+    if (kind !== "tarball" && (kind !== "path" || name !== target.name || inspected.value.bundle !== true) || !expectedVersion) {
       return { kind: failure, retryInstall: removed };
     }
-    const installation = await manager.installBundle(target.spec, {
+    const installation = await manager.installBundle(destination, {
       enabled: target.enabled,
       expected: { name: target.name, version: expectedVersion }
     });
@@ -111,7 +131,8 @@ async function reload(manager, target, stage, retryInstall = false) {
       }
     }
   } catch (error) {
-    return { kind: failure, detail: error instanceof Error ? error.message : String(error), retryInstall: removed };
+    const detail = error instanceof Error ? error.message : String(error);
+    return failure === "removeFailed" ? removalFailure(detail) : { kind: failure, detail, retryInstall: removed };
   }
 }
 
@@ -119,9 +140,17 @@ async function reload(manager, target, stage, retryInstall = false) {
 var en = {
   badge: "Local",
   reload: "Destructive reload",
-  confirm: "Uninstall this plugin and reinstall it from the same local source. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.",
+  confirm: "Uninstall this plugin and reinstall it from the local source below. It will stop temporarily. Keep this window open until the operation finishes. If reinstallation fails, the plugin may remain uninstalled.",
+  sourceLabel: "Local source",
+  editSource: "Edit source",
+  invalidSource: "Enter an absolute local path, optionally prefixed with link: or file:.",
+  restoreSource: "Restore from original source",
+  loading: "Loading local plugins\u2026",
+  empty: "No locally installed plugins.",
+  listError: "Could not load local plugins.",
   archiveVersion: "A local archive must still contain the currently installed version.",
-  recovery: "To recover manually, use Plugins \u2192 Add plugin with the source above.",
+  directoryCheck: "DSH can fully verify a directory with the same package name only after uninstalling.",
+  recovery: "While this page stays open, the Local tab keeps the recovery action. To install manually, go to Installed \u2192 Add plugin.",
   activationFailed: "The package was reinstalled. Open its details to check why activation failed.",
   confirmAction: "Uninstall and reinstall",
   cancel: "Cancel",
@@ -134,7 +163,7 @@ var en = {
   restart: "Plugin reinstalled. Restart DeepSeek Harness to apply the change.",
   overridden: "Plugin reinstalled. A profile override controls whether it runs.",
   changed: "The installation changed. Reopen the plugin details to check its current state.",
-  source: "The original source could not be verified.",
+  source: "The selected source could not be verified.",
   removeFailed: "Uninstall did not complete.",
   installFailed: "Reinstall did not complete."
 };
@@ -143,9 +172,17 @@ var LABELS = {
   zh: {
     badge: "\u672C\u5730",
     reload: "\u7834\u574F\u6027\u91CD\u8F7D",
-    confirm: "\u5C06\u5378\u8F7D\u6B64\u63D2\u4EF6\uFF0C\u518D\u4ECE\u539F\u6709\u672C\u5730\u6765\u6E90\u91CD\u65B0\u5B89\u88C5\u3002\u63D2\u4EF6\u4F1A\u6682\u65F6\u505C\u6B62\u8FD0\u884C\uFF0C\u8BF7\u4FDD\u6301\u6B64\u7A97\u53E3\u6253\u5F00\uFF0C\u76F4\u5230\u64CD\u4F5C\u5B8C\u6210\u3002 \u91CD\u88C5\u5931\u8D25\u65F6\uFF0C\u63D2\u4EF6\u53EF\u80FD\u4F1A\u5904\u4E8E\u672A\u5B89\u88C5\u72B6\u6001\u3002",
+    confirm: "\u5C06\u5378\u8F7D\u6B64\u63D2\u4EF6\uFF0C\u518D\u4ECE\u4E0B\u65B9\u7684\u672C\u5730\u6765\u6E90\u91CD\u65B0\u5B89\u88C5\u3002\u63D2\u4EF6\u4F1A\u6682\u65F6\u505C\u6B62\u8FD0\u884C\uFF0C\u8BF7\u4FDD\u6301\u6B64\u7A97\u53E3\u6253\u5F00\uFF0C\u76F4\u5230\u64CD\u4F5C\u5B8C\u6210\u3002 \u91CD\u88C5\u5931\u8D25\u65F6\uFF0C\u63D2\u4EF6\u53EF\u80FD\u4F1A\u5904\u4E8E\u672A\u5B89\u88C5\u72B6\u6001\u3002",
+    sourceLabel: "\u672C\u5730\u6765\u6E90\u5730\u5740",
+    editSource: "\u7F16\u8F91\u6765\u6E90\u5730\u5740",
+    invalidSource: "\u8BF7\u8F93\u5165\u7EDD\u5BF9\u8DEF\u5F84\uFF0C\u53EF\u52A0 link: \u6216 file: \u524D\u7F00\u3002",
+    restoreSource: "\u4ECE\u539F\u5730\u5740\u6062\u590D",
+    loading: "\u6B63\u5728\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u2026",
+    empty: "\u6682\u65E0\u672C\u5730\u5B89\u88C5\u7684\u63D2\u4EF6\u3002",
+    listError: "\u65E0\u6CD5\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u3002",
     archiveVersion: "\u672C\u5730\u538B\u7F29\u5305\u5FC5\u987B\u4ECD\u5305\u542B\u5F53\u524D\u5B89\u88C5\u7684\u7248\u672C\u3002",
-    recovery: "\u4E5F\u53EF\u5728\u300C\u63D2\u4EF6 \u2192 \u6DFB\u52A0\u63D2\u4EF6\u300D\u4E2D\u7528\u4E0A\u9762\u7684\u6765\u6E90\u624B\u52A8\u6062\u590D\u3002",
+    directoryCheck: "\u540C\u540D\u76EE\u5F55\u9700\u8981\u5728\u5378\u8F7D\u540E\u624D\u80FD\u5B8C\u6210\u6821\u9A8C\u3002",
+    recovery: "\u5173\u95ED\u5F39\u7A97\u540E\uFF0C\u672C\u9875\u9762\u7684\u300C\u672C\u5730\u300D\u9875\u7B7E\u4ECD\u53EF\u6253\u5F00\u6062\u590D\u64CD\u4F5C\u3002\u624B\u52A8\u5B89\u88C5\u53EF\u524D\u5F80\u300C\u5DF2\u5B89\u88C5 \u2192 \u6DFB\u52A0\u63D2\u4EF6\u300D\u3002",
     activationFailed: "\u63D2\u4EF6\u5305\u5DF2\u88C5\u56DE\u3002\u8BF7\u6253\u5F00\u8BE6\u60C5\u67E5\u770B\u542F\u7528\u5931\u8D25\u7684\u539F\u56E0\u3002",
     confirmAction: "\u5378\u8F7D\u5E76\u91CD\u65B0\u5B89\u88C5",
     cancel: "\u53D6\u6D88",
@@ -158,16 +195,24 @@ var LABELS = {
     restart: "\u63D2\u4EF6\u5DF2\u91CD\u65B0\u5B89\u88C5\u3002\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002",
     overridden: "\u63D2\u4EF6\u5DF2\u91CD\u65B0\u5B89\u88C5\u3002\u662F\u5426\u8FD0\u884C\u53D6\u51B3\u4E8E\u914D\u7F6E\u4E2D\u7684\u8986\u76D6\u8BBE\u7F6E\u3002",
     changed: "\u5B89\u88C5\u72B6\u6001\u5DF2\u53D8\u5316\u3002\u8BF7\u91CD\u65B0\u6253\u5F00\u63D2\u4EF6\u8BE6\u60C5\u67E5\u770B\u5F53\u524D\u72B6\u6001\u3002",
-    source: "\u65E0\u6CD5\u9A8C\u8BC1\u539F\u6709\u6765\u6E90\u3002",
+    source: "\u65E0\u6CD5\u9A8C\u8BC1\u6240\u9009\u6765\u6E90\u3002",
     removeFailed: "\u5378\u8F7D\u672A\u5B8C\u6210\u3002",
     installFailed: "\u91CD\u65B0\u5B89\u88C5\u672A\u5B8C\u6210\u3002"
   },
   ja: {
     badge: "\u30ED\u30FC\u30AB\u30EB",
     reload: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB",
-    confirm: "\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3001\u540C\u3058\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9\u304B\u3089\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3059\u3002\u51E6\u7406\u304C\u7D42\u308F\u308B\u307E\u3067\u3053\u306E\u30A6\u30A3\u30F3\u30C9\u30A6\u3092\u958B\u3044\u305F\u307E\u307E\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002 \u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u306B\u5931\u6557\u3059\u308B\u3068\u524A\u9664\u3055\u308C\u305F\u307E\u307E\u306B\u306A\u308B\u3053\u3068\u304C\u3042\u308A\u307E\u3059\u3002",
+    confirm: "\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3001\u4E0B\u8A18\u306E\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9\u304B\u3089\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3059\u3002\u51E6\u7406\u304C\u7D42\u308F\u308B\u307E\u3067\u3053\u306E\u30A6\u30A3\u30F3\u30C9\u30A6\u3092\u958B\u3044\u305F\u307E\u307E\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002 \u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u306B\u5931\u6557\u3059\u308B\u3068\u524A\u9664\u3055\u308C\u305F\u307E\u307E\u306B\u306A\u308B\u3053\u3068\u304C\u3042\u308A\u307E\u3059\u3002",
+    sourceLabel: "\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9",
+    editSource: "\u30BD\u30FC\u30B9\u3092\u7DE8\u96C6",
+    invalidSource: "\u30ED\u30FC\u30AB\u30EB\u306E\u7D76\u5BFE\u30D1\u30B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002link: \u307E\u305F\u306F file: \u306F\u7701\u7565\u3067\u304D\u307E\u3059\u3002",
+    restoreSource: "\u5143\u306E\u30BD\u30FC\u30B9\u304B\u3089\u5FA9\u5143",
+    loading: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026",
+    empty: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+    listError: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
     archiveVersion: "\u30ED\u30FC\u30AB\u30EB\u30A2\u30FC\u30AB\u30A4\u30D6\u306B\u306F\u73FE\u5728\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u5FC5\u8981\u3067\u3059\u3002",
-    recovery: "\u624B\u52D5\u3067\u5FA9\u65E7\u3059\u308B\u306B\u306F\u3001\u30D7\u30E9\u30B0\u30A4\u30F3\u306E\u8FFD\u52A0\u304B\u3089\u4E0A\u306E\u30BD\u30FC\u30B9\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    directoryCheck: "\u540C\u540D\u306E\u30C7\u30A3\u30EC\u30AF\u30C8\u30EA\u306E\u5B8C\u5168\u306A\u691C\u8A3C\u306F\u3001\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u5F8C\u306B\u884C\u308F\u308C\u307E\u3059\u3002",
+    recovery: "\u3053\u306E\u30DA\u30FC\u30B8\u3092\u958B\u3044\u3066\u3044\u308B\u9593\u306F\u300C\u30ED\u30FC\u30AB\u30EB\u300D\u30BF\u30D6\u304B\u3089\u5FA9\u5143\u3067\u304D\u307E\u3059\u3002\u624B\u52D5\u3067\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3059\u308B\u306B\u306F\u300C\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u6E08\u307F \u2192 \u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8FFD\u52A0\u300D\u3092\u958B\u3044\u3066\u304F\u3060\u3055\u3044\u3002",
     activationFailed: "\u30D1\u30C3\u30B1\u30FC\u30B8\u306F\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3055\u308C\u307E\u3057\u305F\u3002\u8A73\u7D30\u3067\u6709\u52B9\u5316\u306B\u5931\u6557\u3057\u305F\u7406\u7531\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
     confirmAction: "\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u3066\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB",
     cancel: "\u30AD\u30E3\u30F3\u30BB\u30EB",
@@ -180,16 +225,24 @@ var LABELS = {
     restart: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3057\u305F\u3002\u5909\u66F4\u3092\u9069\u7528\u3059\u308B\u306B\u306F DeepSeek Harness \u3092\u518D\u8D77\u52D5\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
     overridden: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u3057\u307E\u3057\u305F\u3002\u5B9F\u884C\u72B6\u614B\u306F\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u8A2D\u5B9A\u3067\u6C7A\u307E\u308A\u307E\u3059\u3002",
     changed: "\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u72B6\u614B\u304C\u5909\u308F\u308A\u307E\u3057\u305F\u3002\u8A73\u7D30\u3092\u958B\u304D\u76F4\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
-    source: "\u5143\u306E\u30BD\u30FC\u30B9\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
+    source: "\u9078\u629E\u3057\u305F\u30BD\u30FC\u30B9\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
     removeFailed: "\u30A2\u30F3\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u304C\u5B8C\u4E86\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
     installFailed: "\u518D\u30A4\u30F3\u30B9\u30C8\u30FC\u30EB\u304C\u5B8C\u4E86\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002"
   },
   de: {
     badge: "Lokal",
     reload: "Neu installieren",
-    confirm: "Das Plugin wird deinstalliert und aus derselben lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss ge\xF6ffnet. Wenn die Neuinstallation fehlschl\xE4gt, kann das Plugin deinstalliert bleiben.",
+    confirm: "Das Plugin wird deinstalliert und aus der unten genannten lokalen Quelle installiert. Lass dieses Fenster bis zum Abschluss ge\xF6ffnet. Wenn die Neuinstallation fehlschl\xE4gt, kann das Plugin deinstalliert bleiben.",
+    sourceLabel: "Lokale Quelle",
+    editSource: "Quelle bearbeiten",
+    invalidSource: "Gib einen absoluten lokalen Pfad ein. link: und file: sind optional.",
+    restoreSource: "Aus urspr\xFCnglicher Quelle wiederherstellen",
+    loading: "Lokale Plugins werden geladen\u2026",
+    empty: "Keine lokal installierten Plugins.",
+    listError: "Lokale Plugins konnten nicht geladen werden.",
     archiveVersion: "Das lokale Archiv muss weiterhin die installierte Version enthalten.",
-    recovery: "Zur manuellen Wiederherstellung verwende die Quelle oben unter \u201EPlugin hinzuf\xFCgen\u201C.",
+    directoryCheck: "Ein Verzeichnis mit demselben Paketnamen kann erst nach der Deinstallation vollst\xE4ndig gepr\xFCft werden.",
+    recovery: "Solange diese Seite ge\xF6ffnet ist, findest du die Wiederherstellung unter \u201ELokal\u201C. Zur manuellen Installation w\xE4hle \u201EInstalliert \u2192 Plugin hinzuf\xFCgen\u201C.",
     activationFailed: "Das Paket wurde installiert. \xD6ffne die Details, um den Aktivierungsfehler zu pr\xFCfen.",
     confirmAction: "Deinstallieren und neu installieren",
     cancel: "Abbrechen",
@@ -202,16 +255,24 @@ var LABELS = {
     restart: "Plugin neu installiert. Starte DeepSeek Harness neu, um die \xC4nderung anzuwenden.",
     overridden: "Plugin neu installiert. Eine Profileinstellung bestimmt, ob es ausgef\xFChrt wird.",
     changed: "Die Installation hat sich ge\xE4ndert. \xD6ffne die Plugin-Details erneut.",
-    source: "Die urspr\xFCngliche Quelle konnte nicht gepr\xFCft werden.",
+    source: "Die gew\xE4hlte Quelle konnte nicht gepr\xFCft werden.",
     removeFailed: "Deinstallation nicht abgeschlossen.",
     installFailed: "Neuinstallation nicht abgeschlossen."
   },
   es: {
     badge: "Local",
     reload: "Reinstalar",
-    confirm: "Se desinstalar\xE1 el complemento y se instalar\xE1 de nuevo desde la misma fuente local. Mant\xE9n abierta esta ventana hasta que termine. Si falla la reinstalaci\xF3n, el complemento puede seguir desinstalado.",
+    confirm: "Se desinstalar\xE1 el complemento y se instalar\xE1 de nuevo desde la fuente local indicada abajo. Mant\xE9n abierta esta ventana hasta que termine. Si falla la reinstalaci\xF3n, el complemento puede seguir desinstalado.",
+    sourceLabel: "Fuente local",
+    editSource: "Editar fuente",
+    invalidSource: "Introduce una ruta local absoluta. Los prefijos link: y file: son opcionales.",
+    restoreSource: "Restaurar desde la fuente original",
+    loading: "Cargando complementos locales\u2026",
+    empty: "No hay complementos instalados localmente.",
+    listError: "No se pudieron cargar los complementos locales.",
     archiveVersion: "El archivo local debe conservar la versi\xF3n instalada.",
-    recovery: "Para recuperarlo manualmente, usa la fuente anterior en A\xF1adir complemento.",
+    directoryCheck: "Un directorio con el mismo nombre de paquete solo se puede verificar por completo tras la desinstalaci\xF3n.",
+    recovery: "Mientras la p\xE1gina est\xE9 abierta, puedes volver a Restaurar desde Local. Para instalar manualmente, ve a Instalados \u2192 A\xF1adir complemento.",
     activationFailed: "El paquete se reinstal\xF3. Abre los detalles para consultar el error de activaci\xF3n.",
     confirmAction: "Desinstalar y reinstalar",
     cancel: "Cancelar",
@@ -224,16 +285,24 @@ var LABELS = {
     restart: "Complemento reinstalado. Reinicia DeepSeek Harness para aplicar el cambio.",
     overridden: "Complemento reinstalado. El perfil determina si se ejecuta.",
     changed: "La instalaci\xF3n ha cambiado. Vuelve a abrir los detalles.",
-    source: "No se pudo verificar la fuente original.",
+    source: "No se pudo verificar la fuente seleccionada.",
     removeFailed: "La desinstalaci\xF3n no se complet\xF3.",
     installFailed: "La reinstalaci\xF3n no se complet\xF3."
   },
   fr: {
     badge: "Local",
     reload: "R\xE9installer",
-    confirm: "L\u2019extension sera d\xE9sinstall\xE9e puis r\xE9install\xE9e depuis la m\xEAme source locale. Gardez cette fen\xEAtre ouverte jusqu\u2019\xE0 la fin. Si la r\xE9installation \xE9choue, l\u2019extension peut rester d\xE9sinstall\xE9e.",
+    confirm: "L\u2019extension sera d\xE9sinstall\xE9e puis r\xE9install\xE9e depuis la source locale ci-dessous. Gardez cette fen\xEAtre ouverte jusqu\u2019\xE0 la fin. Si la r\xE9installation \xE9choue, l\u2019extension peut rester d\xE9sinstall\xE9e.",
+    sourceLabel: "Source locale",
+    editSource: "Modifier la source",
+    invalidSource: "Saisissez un chemin local absolu. Les pr\xE9fixes link: et file: sont facultatifs.",
+    restoreSource: "Restaurer depuis la source d\u2019origine",
+    loading: "Chargement des extensions locales\u2026",
+    empty: "Aucune extension install\xE9e localement.",
+    listError: "Impossible de charger les extensions locales.",
     archiveVersion: "L\u2019archive locale doit toujours contenir la version install\xE9e.",
-    recovery: "Pour la restaurer manuellement, utilisez la source ci-dessus dans Ajouter une extension.",
+    directoryCheck: "Un dossier portant le m\xEAme nom de paquet ne peut \xEAtre enti\xE8rement v\xE9rifi\xE9 qu\u2019apr\xE8s la d\xE9sinstallation.",
+    recovery: "Tant que cette page reste ouverte, la restauration est accessible dans Local. Pour installer manuellement, ouvrez Install\xE9es \u2192 Ajouter une extension.",
     activationFailed: "Le paquet a \xE9t\xE9 r\xE9install\xE9. Ouvrez les d\xE9tails pour v\xE9rifier l\u2019erreur d\u2019activation.",
     confirmAction: "D\xE9sinstaller et r\xE9installer",
     cancel: "Annuler",
@@ -246,16 +315,24 @@ var LABELS = {
     restart: "Extension r\xE9install\xE9e. Red\xE9marrez DeepSeek Harness pour appliquer la modification.",
     overridden: "Extension r\xE9install\xE9e. Les r\xE9glages du profil d\xE9terminent son activation.",
     changed: "L\u2019installation a chang\xE9. Rouvrez les d\xE9tails de l\u2019extension.",
-    source: "Impossible de v\xE9rifier la source d\u2019origine.",
+    source: "Impossible de v\xE9rifier la source s\xE9lectionn\xE9e.",
     removeFailed: "La d\xE9sinstallation n\u2019a pas abouti.",
     installFailed: "La r\xE9installation n\u2019a pas abouti."
   },
   pt: {
     badge: "Local",
     reload: "Reinstalar",
-    confirm: "O plugin ser\xE1 desinstalado e reinstalado a partir da mesma origem local. Mantenha esta janela aberta at\xE9 o fim da opera\xE7\xE3o. Se a reinstala\xE7\xE3o falhar, o plugin pode continuar desinstalado.",
+    confirm: "O plugin ser\xE1 desinstalado e reinstalado a partir da origem local abaixo. Mantenha esta janela aberta at\xE9 o fim da opera\xE7\xE3o. Se a reinstala\xE7\xE3o falhar, o plugin pode continuar desinstalado.",
+    sourceLabel: "Origem local",
+    editSource: "Editar origem",
+    invalidSource: "Insira um caminho local absoluto. Os prefixos link: e file: s\xE3o opcionais.",
+    restoreSource: "Restaurar a partir da origem original",
+    loading: "Carregando plugins locais\u2026",
+    empty: "Nenhum plugin instalado localmente.",
+    listError: "N\xE3o foi poss\xEDvel carregar os plugins locais.",
     archiveVersion: "O arquivo local ainda precisa conter a vers\xE3o instalada.",
-    recovery: "Para recuperar manualmente, use a origem acima em Adicionar plugin.",
+    directoryCheck: "Um diret\xF3rio com o mesmo nome de pacote s\xF3 pode ser verificado por completo ap\xF3s a desinstala\xE7\xE3o.",
+    recovery: "Enquanto esta p\xE1gina estiver aberta, a op\xE7\xE3o de recupera\xE7\xE3o fica em Local. Para instalar manualmente, v\xE1 at\xE9 Instalados \u2192 Adicionar plugin.",
     activationFailed: "O pacote foi reinstalado. Abra os detalhes para verificar o erro de ativa\xE7\xE3o.",
     confirmAction: "Desinstalar e reinstalar",
     cancel: "Cancelar",
@@ -268,16 +345,24 @@ var LABELS = {
     restart: "Plugin reinstalado. Reinicie o DeepSeek Harness para aplicar a altera\xE7\xE3o.",
     overridden: "Plugin reinstalado. As configura\xE7\xF5es do perfil determinam se ele ser\xE1 executado.",
     changed: "A instala\xE7\xE3o mudou. Abra novamente os detalhes do plugin.",
-    source: "N\xE3o foi poss\xEDvel verificar a origem original.",
+    source: "N\xE3o foi poss\xEDvel verificar a origem selecionada.",
     removeFailed: "A desinstala\xE7\xE3o n\xE3o foi conclu\xEDda.",
     installFailed: "A reinstala\xE7\xE3o n\xE3o foi conclu\xEDda."
   },
   ru: {
     badge: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439",
     reload: "\u041F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
-    confirm: "\u041F\u043B\u0430\u0433\u0438\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0438\u0437 \u0442\u043E\u0433\u043E \u0436\u0435 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043E\u043A\u043D\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438. \u0415\u0441\u043B\u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u043D\u0435 \u0443\u0434\u0430\u0441\u0442\u0441\u044F, \u043F\u043B\u0430\u0433\u0438\u043D \u043C\u043E\u0436\u0435\u0442 \u043E\u0441\u0442\u0430\u0442\u044C\u0441\u044F \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u043C.",
+    confirm: "\u041F\u043B\u0430\u0433\u0438\u043D \u0431\u0443\u0434\u0435\u0442 \u0443\u0434\u0430\u043B\u0451\u043D \u0438 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0438\u0437 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u043D\u0438\u0436\u0435 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043E\u043A\u043D\u043E \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u043C \u0434\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u044F \u043E\u043F\u0435\u0440\u0430\u0446\u0438\u0438. \u0415\u0441\u043B\u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u043D\u0435 \u0443\u0434\u0430\u0441\u0442\u0441\u044F, \u043F\u043B\u0430\u0433\u0438\u043D \u043C\u043E\u0436\u0435\u0442 \u043E\u0441\u0442\u0430\u0442\u044C\u0441\u044F \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u043C.",
+    sourceLabel: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
+    editSource: "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
+    invalidSource: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0431\u0441\u043E\u043B\u044E\u0442\u043D\u044B\u0439 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u043F\u0443\u0442\u044C. \u041F\u0440\u0435\u0444\u0438\u043A\u0441\u044B link: \u0438 file: \u043D\u0435\u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B.",
+    restoreSource: "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0437 \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A\u0430",
+    loading: "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432\u2026",
+    empty: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u043E \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432 \u043D\u0435\u0442.",
+    listError: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u044B.",
     archiveVersion: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u0430\u0440\u0445\u0438\u0432 \u0434\u043E\u043B\u0436\u0435\u043D \u0441\u043E\u0434\u0435\u0440\u0436\u0430\u0442\u044C \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E.",
-    recovery: "\u0414\u043B\u044F \u0440\u0443\u0447\u043D\u043E\u0433\u043E \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F \u0443\u043A\u0430\u0436\u0438\u0442\u0435 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A \u0432\u044B\u0448\u0435 \u0432 \u0440\u0430\u0437\u0434\u0435\u043B\u0435 \xAB\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043B\u0430\u0433\u0438\u043D\xBB.",
+    directoryCheck: "\u041F\u043E\u043B\u043D\u0430\u044F \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430 \u043A\u0430\u0442\u0430\u043B\u043E\u0433\u0430 \u0441 \u0442\u0435\u043C \u0436\u0435 \u0438\u043C\u0435\u043D\u0435\u043C \u043F\u0430\u043A\u0435\u0442\u0430 \u0432\u043E\u0437\u043C\u043E\u0436\u043D\u0430 \u0442\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u0441\u043B\u0435 \u0443\u0434\u0430\u043B\u0435\u043D\u0438\u044F.",
+    recovery: "\u041F\u043E\u043A\u0430 \u0441\u0442\u0440\u0430\u043D\u0438\u0446\u0430 \u043E\u0442\u043A\u0440\u044B\u0442\u0430, \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0435 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u043E \u043D\u0430 \u0432\u043A\u043B\u0430\u0434\u043A\u0435 \xAB\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0435\xBB. \u0414\u043B\u044F \u0440\u0443\u0447\u043D\u043E\u0439 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u043E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 \xAB\u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0435 \u2192 \u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u043F\u043B\u0430\u0433\u0438\u043D\xBB.",
     activationFailed: "\u041F\u0430\u043A\u0435\u0442 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D. \u041E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 \u0441\u0432\u0435\u0434\u0435\u043D\u0438\u044F, \u0447\u0442\u043E\u0431\u044B \u043F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u043E\u0448\u0438\u0431\u043A\u0443 \u0430\u043A\u0442\u0438\u0432\u0430\u0446\u0438\u0438.",
     confirmAction: "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438 \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
     cancel: "\u041E\u0442\u043C\u0435\u043D\u0430",
@@ -290,7 +375,7 @@ var LABELS = {
     restart: "\u041F\u043B\u0430\u0433\u0438\u043D \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D. \u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u0435 DeepSeek Harness, \u0447\u0442\u043E\u0431\u044B \u043F\u0440\u0438\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F.",
     overridden: "\u041F\u043B\u0430\u0433\u0438\u043D \u043F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D. \u0415\u0433\u043E \u0437\u0430\u043F\u0443\u0441\u043A \u0437\u0430\u0432\u0438\u0441\u0438\u0442 \u043E\u0442 \u043D\u0430\u0441\u0442\u0440\u043E\u0435\u043A \u043F\u0440\u043E\u0444\u0438\u043B\u044F.",
     changed: "\u0421\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u043E\u0441\u044C. \u0421\u043D\u043E\u0432\u0430 \u043E\u0442\u043A\u0440\u043E\u0439\u0442\u0435 \u0441\u0432\u0435\u0434\u0435\u043D\u0438\u044F \u043E \u043F\u043B\u0430\u0433\u0438\u043D\u0435.",
-    source: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A.",
+    source: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u043F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A.",
     removeFailed: "\u0423\u0434\u0430\u043B\u0435\u043D\u0438\u0435 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043E.",
     installFailed: "\u041F\u0435\u0440\u0435\u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u043D\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0430."
   }
@@ -332,6 +417,26 @@ var css = `
 .dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
 .dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
+.dsh-local-source-section { border-top: 1px solid var(--dsw-alias-border-l1); padding: 16px 0; }
+.dsh-local-source-section label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dsh-local-source-input {
+  flex: 1 1 180px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
+}
+.dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
+.dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
+.dsh-local-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.dsh-local-card {
+  min-width: 0; display: grid; gap: 6px; text-align: start; padding: 14px; border-radius: 12px;
+  border: 1px solid var(--dsw-alias-border-l1); background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary); font: inherit; cursor: pointer;
+}
+.dsh-local-card:hover { background: var(--dsw-alias-bg-layer-2); }
+.dsh-local-card-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; overflow-wrap: anywhere; }
+.dsh-local-card code { color: var(--dsw-alias-label-secondary); font-size: 12px; overflow-wrap: anywhere; }
+.dsh-local-recoveries { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
   border: 1px solid var(--dsw-alias-border-l1); border-radius: 16px;
@@ -347,12 +452,15 @@ var css = `
 `;
 function apply(ctx) {
   const manager = ctx.remote.pluginManager;
-  const inventory = store([]);
+  const inventory = store(null);
+  let inventoryRequested = false;
   const dialog = store(null);
+  const recoveries = store([]);
   let pending;
   let requested = false;
   let disposed = false;
   function refresh() {
+    inventoryRequested = true;
     requested = true;
     if (pending !== void 0) return;
     pending = (async () => {
@@ -360,23 +468,27 @@ function apply(ctx) {
         requested = false;
         try {
           const answer = await manager.listBundles();
-          if (!disposed) inventory.set(answer.ok ? answer.value : []);
+          if (!disposed) inventory.set(answer.ok ? answer.value : "error");
         } catch {
-          if (!disposed) inventory.set([]);
+          if (!disposed) inventory.set("error");
         }
       } while (requested && !disposed);
     })().finally(() => {
       pending = void 0;
     });
   }
-  function useBundle({ subject, useRemoteAccess }) {
+  function useInventory({ useRemoteAccess }, active = true) {
     const canList = useRemoteAccess("pluginManager/listBundles");
     const bundles = (0, import_react.useSyncExternalStore)(inventory.subscribe, inventory.get);
-    const name = subject.kind === "item" ? void 0 : subject.pkg.name;
     (0, import_react.useEffect)(() => {
-      if (canList && name) refresh();
-    }, [canList, name]);
-    return canList && name ? bundles.find((bundle) => bundle.name === name) : void 0;
+      if (canList && active) refresh();
+    }, [canList, active]);
+    return canList ? bundles : "error";
+  }
+  function useBundle(props) {
+    const name = props.subject.kind === "item" ? void 0 : props.subject.pkg.name;
+    const bundles = useInventory(props, name !== void 0);
+    return name && bundles && bundles !== "error" ? bundles.find((bundle) => bundle.name === name) : void 0;
   }
   ctx.effect(() => ctx.locale.register(NS, LABELS), `${NS}: locale`);
   const t = ctx.locale.bind(NS);
@@ -389,32 +501,136 @@ function apply(ctx) {
     useLocale();
     return bundle && localSource(bundle) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") }) : null;
   }
-  function ReloadButton(props) {
+  function LocalTab(props) {
+    const bundles = useInventory(props);
+    const canInstall = props.useRemoteAccess("pluginManager/installBundle");
+    const canInspect = props.useRemoteAccess("pluginManager/inspect");
+    const failures = (0, import_react.useSyncExternalStore)(recoveries.subscribe, recoveries.get);
+    const locale = useLocale();
+    if (bundles === "error") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", children: t("listError") });
+    if (bundles === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", children: t("loading") });
+    const entries = bundles.filter((bundle) => localSource(bundle) !== void 0).map((bundle) => ({
+      name: bundle.name,
+      title: bundle.meta?.title ? ctx.locale.resolveText(bundle.meta.title) : bundle.name
+    })).sort((left, right) => left.title.localeCompare(right.title, locale.active));
+    const recoverable = canInstall && canInspect ? failures.filter((failure) => !bundles.some((bundle) => bundle.installed && bundle.name === failure.target.name)) : [];
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+      recoverable.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-local-recoveries", children: recoverable.map((failure) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+        "button",
+        {
+          type: "button",
+          className: "dsh-local-button",
+          onClick: () => dialog.set(failure),
+          children: [
+            t("retry"),
+            " \xB7 ",
+            failure.target.name
+          ]
+        },
+        failure.target.name
+      )) }),
+      entries.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", children: t("empty") }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "dsh-local-list", children: entries.map(({ name, title }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+        "button",
+        {
+          type: "button",
+          className: "dsh-local-card",
+          onClick: () => props.openPackage(name),
+          children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { className: "dsh-local-card-title", children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: title }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") })
+            ] }),
+            title !== name && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: name })
+          ]
+        },
+        name
+      )) })
+    ] });
+  }
+  function ReloadSection(props) {
     const bundle = useBundle(props);
     const canInspect = props.useRemoteAccess("pluginManager/inspect");
     const canRemove = props.useRemoteAccess("pluginManager/removeBundle");
     const canInstall = props.useRemoteAccess("pluginManager/installBundle");
-    const state = (0, import_react.useSyncExternalStore)(dialog.subscribe, dialog.get);
     useLocale();
     const target = bundle && reloadTarget(bundle);
     if (!target || props.subject.kind !== "bundle" || !canInspect || !canRemove || !canInstall) return null;
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-      "button",
-      {
-        type: "button",
-        className: "dsh-local-button dsh-local-destructive",
-        disabled: state !== null,
-        onClick: () => dialog.set({ kind: "confirm", target }),
-        children: t("reload")
-      }
-    );
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SourceEditor, { target }, `${target.name}:${target.spec}`);
   }
-  async function run(target, retry = false) {
-    const state = dialog.get();
-    if (state?.target !== target || (retry ? !("retryInstall" in state && state.retryInstall) : state.kind !== "confirm")) return;
-    const result = await reload(manager, target, (kind) => dialog.set({ kind, target }), retry);
+  function SourceEditor({ target }) {
+    const state = (0, import_react.useSyncExternalStore)(dialog.subscribe, dialog.get);
+    const [draft, setDraft] = (0, import_react.useState)(target.spec);
+    const [editing, setEditing] = (0, import_react.useState)(false);
+    const input = (0, import_react.useRef)(null);
+    const pencil = (0, import_react.useRef)(null);
+    const destination = installSource(draft, target.spec);
+    (0, import_react.useEffect)(() => {
+      if (editing) input.current?.focus();
+    }, [editing]);
+    const invalid = destination === void 0;
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "dsh-local-source-section", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", { htmlFor: `${NS}-source`, children: t("sourceLabel") }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", { className: "dsh-local-source-row", onSubmit: (event) => {
+        event.preventDefault();
+        if (destination && state === null) dialog.set({ kind: "confirm", target, destination });
+      }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            ref: pencil,
+            type: "button",
+            className: "dsh-local-button dsh-local-edit",
+            "aria-label": t("editSource"),
+            title: t("editSource"),
+            disabled: state !== null,
+            onClick: () => {
+              setEditing(true);
+              input.current?.focus();
+            },
+            children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { "aria-hidden": "true", width: "15", height: "15", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.3", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" }) })
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "input",
+          {
+            ref: input,
+            id: `${NS}-source`,
+            className: "dsh-local-source-input",
+            type: "text",
+            spellCheck: false,
+            autoCapitalize: "off",
+            autoComplete: "off",
+            readOnly: !editing || state !== null,
+            value: draft,
+            "aria-invalid": invalid || void 0,
+            "aria-describedby": invalid ? `${NS}-source-error` : void 0,
+            onChange: (event) => setDraft(event.target.value),
+            onKeyDown: (event) => {
+              if (event.key === "Escape" && editing) {
+                event.stopPropagation();
+                setDraft(target.spec);
+                setEditing(false);
+                pencil.current?.focus();
+              }
+            }
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "submit", className: "dsh-local-button dsh-local-destructive", disabled: invalid, children: t("reload") })
+      ] }),
+      invalid && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { id: `${NS}-source-error`, className: "dsh-local-source-error", children: t("invalidSource") })
+    ] });
+  }
+  async function run(state, destination = state.destination) {
+    if (dialog.get() !== state) return;
+    const retry = "retryInstall" in state && state.retryInstall === true;
+    if (!retry && state.kind !== "confirm") return;
+    const { target } = state;
+    const result = await reload(manager, target, (kind) => dialog.set({ kind, target, destination }), retry, destination);
     if (disposed) return;
-    dialog.set({ ...result, target });
+    const settled = { ...result, target, destination };
+    const other = recoveries.get().filter((item) => item.target.name !== target.name);
+    recoveries.set("retryInstall" in result && result.retryInstall ? [...other, settled] : other);
+    dialog.set(settled);
     refresh();
   }
   function Overlay() {
@@ -439,8 +655,9 @@ function apply(ctx) {
       focus?.focus();
     }, [open, waiting]);
     if (!state) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css });
-    const { kind: phase, target } = state;
+    const { kind: phase, target, destination } = state;
     const retry = "retryInstall" in state && state.retryInstall === true;
+    const moving = destination !== target.spec;
     const showSource = phase === "confirm" || retry || phase === "removeFailed" || phase === "installFailed";
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css }),
@@ -459,9 +676,14 @@ function apply(ctx) {
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { id: `${NS}-title`, children: t("reload") }),
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: target.name }) }),
             /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { ref: status, id: `${NS}-status`, role: "status", tabIndex: -1, children: t(phase) }),
-            phase === "confirm" && /\.(?:tgz|tar\.gz)$/i.test(target.spec) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("archiveVersion") }) : null,
-            showSource ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: target.spec }) : null,
+            phase === "confirm" && (/\.(?:tgz|tar\.gz)$/i.test(destination) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("archiveVersion") }) : moving && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("directoryCheck") })),
+            showSource ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: destination }) : null,
             "detail" in state && state.detail ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: state.detail }) : null,
+            retry && moving && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
+              t("restoreSource"),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: target.spec })
+            ] }),
             retry ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("recovery") }) : null,
             /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", { children: [
               !waiting && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
@@ -481,9 +703,20 @@ function apply(ctx) {
                   type: "button",
                   className: "dsh-local-button dsh-local-destructive",
                   onClick: () => {
-                    void run(target);
+                    void run(state);
                   },
                   children: t("confirmAction")
+                }
+              ),
+              retry && moving && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+                "button",
+                {
+                  type: "button",
+                  className: "dsh-local-button",
+                  onClick: () => {
+                    void run(state, target.spec);
+                  },
+                  children: t("restoreSource")
                 }
               ),
               retry && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
@@ -492,7 +725,7 @@ function apply(ctx) {
                   type: "button",
                   className: "dsh-local-button",
                   onClick: () => {
-                    void run(target, true);
+                    void run(state);
                   },
                   children: t("retry")
                 }
@@ -504,19 +737,20 @@ function apply(ctx) {
     ] });
   }
   ctx.effect(() => {
-    const changed = ctx.remote.$on("plugin-manager/changed", () => {
-      if (inventory.get().length > 0 || pending !== void 0) refresh();
-    });
-    const reset = ctx.on("connection/reset", () => {
-      if (inventory.get().length > 0 || pending !== void 0) refresh();
-    });
+    const refreshIfRequested = () => {
+      if (inventoryRequested) refresh();
+    };
+    const changed = ctx.remote.$on("plugin-manager/changed", refreshIfRequested);
+    const reset = ctx.on("connection/reset", refreshIfRequested);
     const badge = ctx.slots.inject("plugins.detail.badge", () => ctx.slots.register({ name: "plugins.detail.badge", id: NS }, Badge));
-    const button = ctx.slots.inject("plugins.detail.actions", () => ctx.slots.register({ name: "plugins.detail.actions", id: NS }, ReloadButton));
+    const section = ctx.slots.inject("plugins.detail.section", () => ctx.slots.register({ name: "plugins.detail.section", id: NS }, ReloadSection));
+    const tab = ctx.slots.inject("plugins.tab", () => ctx.slots.register({ name: "plugins.tab", id: NS, label: () => t("badge"), order: -10 }, LocalTab));
     const overlay = ctx.slots.inject("shell.overlay", () => ctx.slots.register({ name: "shell.overlay", id: NS }, Overlay));
     return () => {
       disposed = true;
       badge();
-      button();
+      section();
+      tab();
       overlay();
       changed();
       reset();

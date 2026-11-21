@@ -2,14 +2,16 @@
 
 [简体中文](README.zh.md)
 
-Open a locally installed bundle in **Plugins** to see its **Local** badge beside the title.
-Choose **Destructive reload** and confirm to uninstall the bundle and reinstall it from its original path
-with the same enablement setting.
+Open **Plugins → Local** to browse locally installed bundles.
+Each card and detail page title shows a **Local** badge.
+On the detail page of a removable bundle, use the pencil icon to edit the source.
+Choose **Destructive reload** and confirm to check the source, uninstall the bundle,
+and reinstall from the selected path with the same enablement.
+Enter an absolute local path, optionally with a `link:` or `file:` prefix.
 
 Keep the window open until the operation finishes.
-If reinstalling fails after removal, the dialog shows the source and offers a retry.
+If reinstalling fails after removal, retry the installation or restore from the original source.
 Local archives must still contain the installed version because the source check only verifies that the archive exists.
-The reload button is available on bundle details for removable installations.
 
 Requires DeepSeek Harness 0.2.2-rc.5 or newer.
 Install this directory through **Plugins** > **Add plugin**.
