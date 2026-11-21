@@ -442,11 +442,12 @@ var css = `
 .dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
 .dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
-.dsh-local-source-section { border-top: 1px solid var(--dsw-alias-border-l1); padding: 16px 0; }
-.dsh-local-source-section label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; }
-.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.dsh-local-source-section { width: clamp(112px, calc(100vw - 720px), 380px); -webkit-app-region: no-drag; }
+.dsh-local-source-section label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500; }
+.dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.dsh-local-source-row button[type='submit'] { max-width: 100%; white-space: normal; }
 .dsh-local-source-input {
-  flex: 1 1 180px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
+  flex: 1 1 72px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
   border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
   background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
 }
@@ -750,7 +751,10 @@ function apply(ctx) {
     const changed = ctx.remote.$on("plugin-manager/changed", refreshIfRequested);
     const reset = ctx.on("connection/reset", refreshIfRequested);
     const badge = ctx.slots.inject("plugins.detail.badge", () => ctx.slots.register({ name: "plugins.detail.badge", id: NS }, Badge));
-    const section = ctx.slots.inject("plugins.detail.section", () => ctx.slots.register({ name: "plugins.detail.section", id: NS }, ReloadSection));
+    const reloadAction = ctx.slots.inject("plugins.detail.actions", () => ctx.slots.register({
+      name: "plugins.detail.actions",
+      id: NS
+    }, ReloadSection));
     const tab = ctx.slots.inject("plugins.tab", () => ctx.slots.register({
       name: "plugins.tab",
       id: NS,
@@ -761,7 +765,7 @@ function apply(ctx) {
     return () => {
       disposed = true;
       badge();
-      section();
+      reloadAction();
       tab();
       overlay();
       changed();

@@ -32,7 +32,7 @@ test('registers the Local tab, detail extensions and dialog, then releases all e
   })
   assert.deepEqual([...active].sort(), [
     'connection/reset', 'dsh-local-plugin-reload', 'plugin-manager/changed',
-    'plugins.detail.badge', 'plugins.detail.section', 'plugins.tab', 'shell.overlay',
+    'plugins.detail.actions', 'plugins.detail.badge', 'plugins.tab', 'shell.overlay',
   ])
   for (const dispose of effects.reverse()) dispose()
   assert.equal(active.size, 0)
