@@ -3,11 +3,48 @@
  * do not edit by hand. React and the seeded platform modules come from the
  * host module table.
  */
+/*! Bundled licenses
+@deepseek-ai/dsh-client-ui-primitives
+MIT License
+
+Copyright (c) 2026 DeepSeek
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+clsx
+MIT License
+
+Copyright (c) Luke Edwards <luke.edwards05@gmail.com> (lukeed.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
 window.__ModuleLoader__.load({
   id: 'dsh-local-plugin-reload',
   factory(require) {
     var module = { exports: {} };
     var exports = module.exports;
+    const officialCss = "/* node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Button.module.css */\n.Button_button {\n  box-sizing: border-box;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  gap: 4px;\n  border: none;\n  border-radius: var(--dsw-radius-md);\n  cursor: pointer;\n  font-size: 14px;\n  line-height: 22px;\n  color: var(--dsw-alias-label-primary);\n  background: transparent;\n  padding: 0 14px;\n}\n.Button_button:disabled {\n  cursor: not-allowed;\n  opacity: 0.4;\n}\n.Button_md {\n  height: 36px;\n}\n.Button_sm {\n  height: 28px;\n  font-size: 12px;\n  line-height: 18px;\n  padding: 0 10px;\n  border-radius: var(--dsw-radius-sm);\n}\n.Button_primary {\n  background: var(--dsw-alias-button-primary-fill);\n  color: var(--dsw-alias-label-primary-foreground);\n}\n@media (hover: hover) {\n  .Button_primary:hover:not(:disabled) {\n    background: var(--dsw-alias-button-primary-hover);\n  }\n  .Button_ghost:hover:not(:disabled) {\n    background: var(--dsw-alias-interactive-bg-hover);\n  }\n}\n.Button_ghost:active:not(:disabled) {\n  background: var(--dsw-alias-interactive-bg-active);\n}\n.Button_outline {\n  border: 0.5px solid transparent;\n  background: transparent;\n  box-shadow: inset 0 0 0 var(--dsh-hairline-width, 0.5px) var(--dsh-button-outline-color, var(--dsw-alias-border-l3));\n}\n@media (hover: hover) {\n  .Button_outline:hover:not(:disabled) {\n    background: var(--dsw-alias-interactive-bg-hover);\n  }\n}\n.Button_toolbar {\n  background: var(--dsw-alias-button-tool-bar-fill);\n}\n@media (hover: hover) {\n  .Button_toolbar:hover:not(:disabled) {\n    background: var(--dsw-alias-button-tool-bar-hover);\n  }\n}\n.Button_icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  align-items: center;\n  justify-content: center;\n}\n\n/* node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Input.module.css */\n.Input_wrap {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  height: 32px;\n  padding: 0 8px;\n  border: 0.5px solid var(--dsw-alias-border-l4);\n  border-radius: var(--dsw-radius-md);\n  background: var(--dsw-alias-bg-layer-1);\n}\n.Input_wrap:focus-within {\n  border-color: var(--dsw-alias-state-business-primary);\n}\n.Input_icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  align-items: center;\n  justify-content: center;\n  color: var(--dsw-alias-label-tertiary);\n}\n.Input_input {\n  flex: 1;\n  min-width: 0;\n  border: none;\n  outline: none;\n  background: transparent;\n  font-size: 14px;\n  line-height: 22px;\n  color: var(--dsw-alias-label-primary);\n}\n.Input_input::placeholder {\n  color: var(--dsw-alias-label-dimmed);\n}\n\n/* node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Switch.module.css */\n.Switch_switch {\n  box-sizing: border-box;\n  position: relative;\n  flex: 0 0 auto;\n  width: 36px;\n  height: 20px;\n  padding: 2px;\n  border: 0;\n  border-radius: 999px;\n  corner-shape: round;\n  background: var(--dsw-alias-border-l3);\n  cursor: pointer;\n}\n.Switch_switch[aria-checked=true] {\n  background: var(--dsw-alias-brand-primary);\n}\n.Switch_switch:disabled {\n  cursor: default;\n  opacity: 0.5;\n}\n.Switch_switch:focus-visible {\n  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));\n  outline-offset: 2px;\n}\n.Switch_thumb {\n  display: block;\n  width: 16px;\n  height: 16px;\n  border-radius: 50%;\n  corner-shape: round;\n  background: var(--dsw-alias-label-primary-foreground);\n  transition: transform 120ms ease;\n}\n.Switch_switch[aria-checked=false] .Switch_thumb {\n  background: var(--dsw-alias-switch-thumb);\n}\n.Switch_switch[aria-checked=true] .Switch_thumb {\n  transform: translateX(16px);\n}\n\n/* node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Tag.module.css */\n.Tag_tag {\n  display: inline-flex;\n  align-items: center;\n  border-radius: 999px;\n  corner-shape: round;\n  padding: 1px 8px;\n  font-size: 11px;\n  line-height: 17px;\n  font-weight: 500;\n  white-space: nowrap;\n}\n.Tag_tag[data-tone=outline] {\n  border: 0.5px solid var(--dsw-alias-border-l4);\n  color: var(--dsw-alias-label-tertiary);\n}\n.Tag_tag[data-tone=solid] {\n  background: var(--dsw-alias-label-primary);\n  color: var(--dsw-alias-bg-layer-3);\n}\n.Tag_tag[data-tone=neutral] {\n  background: var(--dsw-alias-bg-module-platform);\n  color: var(--dsw-alias-label-secondary);\n}\n.Tag_tag[data-tone=quiet] {\n  color: var(--dsw-alias-label-tertiary);\n}\n.Tag_tag[data-tone=success] {\n  background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 10%, transparent);\n  color: var(--dsw-alias-state-success-primary);\n}\n.Tag_tag[data-tone=info] {\n  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);\n  color: var(--dsw-alias-state-business-primary);\n}\n.Tag_tag[data-tone=warning] {\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 12%, transparent);\n  color: var(--dsw-alias-state-warn-primary);\n}\n.Tag_tag[data-tone=danger] {\n  background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 10%, transparent);\n  color: var(--dsw-alias-state-error-primary);\n}\n";
 "use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -34,7 +71,128 @@ __export(index_exports, {
   inject: () => inject
 });
 module.exports = __toCommonJS(index_exports);
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Button.tsx
 var import_react = require("react");
+
+// node_modules/clsx/dist/clsx.mjs
+function r(e) {
+  var t, f, n = "";
+  if ("string" == typeof e || "number" == typeof e) n += e;
+  else if ("object" == typeof e) if (Array.isArray(e)) {
+    var o = e.length;
+    for (t = 0; t < o; t++) e[t] && (f = r(e[t])) && (n && (n += " "), n += f);
+  } else for (f in e) e[f] && (n && (n += " "), n += f);
+  return n;
+}
+function clsx() {
+  for (var e, t, f = 0, n = "", o = arguments.length; f < o; f++) (e = arguments[f]) && (t = r(e)) && (n && (n += " "), n += t);
+  return n;
+}
+var clsx_default = clsx;
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Button.module.css
+var Button_default = {
+  button: "Button_button",
+  md: "Button_md",
+  sm: "Button_sm",
+  primary: "Button_primary",
+  ghost: "Button_ghost",
+  outline: "Button_outline",
+  toolbar: "Button_toolbar",
+  icon: "Button_icon"
+};
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Button.tsx
+var import_jsx_runtime = require("react/jsx-runtime");
+var Button = (0, import_react.forwardRef)(function Button2({
+  variant = "ghost",
+  size = "md",
+  icon,
+  className,
+  children,
+  ...rest
+}, ref) {
+  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("button", { ref, type: "button", className: clsx_default(Button_default.button, Button_default[variant], Button_default[size], className), ...rest, children: [
+    icon != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: Button_default.icon, children: icon }),
+    children
+  ] });
+});
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Input.tsx
+var import_react2 = require("react");
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Input.module.css
+var Input_default = {
+  wrap: "Input_wrap",
+  icon: "Input_icon",
+  input: "Input_input"
+};
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Input.tsx
+var import_jsx_runtime2 = require("react/jsx-runtime");
+var Input = (0, import_react2.forwardRef)(function Input2({ icon, className, ...rest }, ref) {
+  return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("span", { className: clsx_default(Input_default.wrap, className), children: [
+    icon != null && /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("span", { className: Input_default.icon, children: icon }),
+    /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("input", { ref, className: Input_default.input, ...rest })
+  ] });
+});
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Switch.module.css
+var Switch_default = {
+  switch: "Switch_switch",
+  thumb: "Switch_thumb"
+};
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Switch.tsx
+var import_jsx_runtime3 = require("react/jsx-runtime");
+function Switch({ checked, onChange, label, disabled = false, title, className }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
+    "button",
+    {
+      type: "button",
+      role: "switch",
+      "aria-checked": checked,
+      "aria-label": label,
+      title,
+      disabled,
+      className: clsx_default(Switch_default.switch, className),
+      onClick: () => {
+        onChange(!checked);
+      },
+      children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("span", { className: Switch_default.thumb })
+    }
+  );
+}
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Tag.module.css
+var Tag_default = {
+  tag: "Tag_tag"
+};
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/Tag.tsx
+var import_jsx_runtime4 = require("react/jsx-runtime");
+function Tag({ tone = "outline", className, children }) {
+  return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { className: clsx_default(Tag_default.tag, className), "data-tone": tone, children });
+}
+
+// node_modules/@deepseek-ai/dsh-client-ui-primitives/src/plugin-artwork.tsx
+var import_react3 = require("react");
+var import_jsx_runtime5 = require("react/jsx-runtime");
+var useArtworkId = () => `dsh_plugin_art_${(0, import_react3.useId)().replaceAll(":", "")}`;
+var PluginArtworkDefault = ({ size = 36, className }) => {
+  const uid = useArtworkId();
+  return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("svg", { width: size, height: size, className, viewBox: "0 0 36 36", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("path", { d: "M24.6294 8.63696C26.2862 8.63705 27.6294 9.98016 27.6294 11.637V12.7825C27.6292 14.4391 26.2861 15.7824 24.6294 15.7825H23.4839C22.6519 15.7825 21.5454 16.3459 21.5454 17.1778V18.1573C21.5454 18.7757 22.216 19.1966 22.8345 19.1965H24.6294C26.2861 19.1965 27.6292 20.5398 27.6294 22.1965V23.9924C27.6292 25.6491 26.2861 26.9924 24.6294 26.9924H22.8345C21.1778 26.9924 19.8347 25.649 19.8345 23.9924V22.1965C19.8345 21.7148 19.4957 21.2327 19.014 21.2327H16.4792C15.7975 21.2327 15.3374 22.0061 15.3374 22.6877V23.8333C15.3373 25.49 13.9942 26.8333 12.3374 26.8333H11.1919C9.53509 26.8333 8.19198 25.49 8.19189 23.8333V22.6877C8.19189 21.0309 9.53504 19.6877 11.1919 19.6877H12.3374C13.1964 19.6877 14.3999 19.0959 14.3999 18.2369V16.0185C14.3999 14.9518 15.2646 14.0872 16.3312 14.0872H19.435C20.0596 14.0872 20.484 13.4071 20.4839 12.7825V11.637C20.4839 9.98011 21.827 8.63696 23.4839 8.63696H24.6294ZM13.4116 11.2468C13.4116 12.6882 12.2431 13.8567 10.8018 13.8567C9.36037 13.8567 8.19189 12.6882 8.19189 11.2468C8.19189 9.80544 9.36037 8.63696 10.8018 8.63696C12.2431 8.63696 13.4116 9.80544 13.4116 11.2468Z", fill: `url(#${uid}a)` }),
+    /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("defs", { children: /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("linearGradient", { id: `${uid}a`, x1: "15.1481", y1: "9.94188", x2: "15.1481", y2: "13.6375", gradientUnits: "userSpaceOnUse", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("stop", { stopColor: "#54ECE7" }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("stop", { offset: "1", stopColor: "#658EFF" })
+    ] }) })
+  ] });
+};
+
+// src/client/index.tsx
+var import_react4 = require("react");
 
 // src/lib/reload.ts
 var LOCAL_SPEC = /^(link|file):((?:\/(?!\/)|\\\\|[a-z]:[/\\]).*)$/i;
@@ -406,7 +564,7 @@ var LABELS = {
 };
 
 // src/client/index.tsx
-var import_jsx_runtime = require("react/jsx-runtime");
+var import_jsx_runtime6 = require("react/jsx-runtime");
 var NS = "dsh-local-plugin-reload";
 var inject = ["locale", "slots", "remote", "remote.pluginManager"];
 function store(initial) {
@@ -426,13 +584,9 @@ function store(initial) {
     }
   };
 }
-var css = `
-.dsh-local-badge {
-  display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px;
-  font-size: 10px; line-height: 1; font-weight: 500; white-space: nowrap;
-  color: var(--dsw-alias-state-business-primary);
-  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);
-}
+var css = officialCss + `
+
+.dsh-local-badge.dsh-local-badge { height: 18px; padding: 0 7px; font-size: 10px; line-height: 1; }
 /* Match the built-in plugin card's spacing and typography. */
 .dsh-local-list { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .dsh-local-card {
@@ -466,38 +620,17 @@ var css = `
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
 }
 .dsh-local-card-end { position: relative; z-index: 1; flex: none; }
-.dsh-local-card-switch {
-  display: block; width: 36px; height: 20px; padding: 2px; border: 0; border-radius: 999px;
-  background: var(--dsw-alias-border-l2); cursor: pointer;
-}
-.dsh-local-card-switch::before {
-  content: ''; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--dsw-alias-bg-base);
-}
-.dsh-local-card-switch[aria-checked='true'] { background: var(--dsw-alias-state-business-primary); }
-.dsh-local-card-switch[aria-checked='true']::before { margin-inline-start: auto; }
-.dsh-local-card-switch:disabled { opacity: .5; cursor: default; }
-.dsh-local-card-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
 .dsh-local-card-notice { margin: 0 0 8px 62px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
 .dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
-.dsh-local-button {
-  font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
-  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1); cursor: pointer;
-  white-space: nowrap; color: var(--dsw-alias-label-primary); background: transparent;
-}
-.dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
-.dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
 .dsh-local-source-section { flex: 0 0 100%; min-width: 0; margin: 8px 0; }
 .dsh-local-source-section label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
 .dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
-.dsh-local-source-row button[type='submit'] { max-width: 100%; white-space: normal; }
-.dsh-local-source-input {
-  flex: 1 1 120px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
-  border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
-}
-.dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
+.dsh-local-source-row button[type='submit'] { max-width: 100%; height: auto; min-height: 28px; white-space: normal; }
+.dsh-local-source-input { flex: 1 1 120px; min-width: 0; }
+.dsh-local-source-input input { font-family: monospace; }
+.dsh-local-edit.dsh-local-edit { width: 28px; padding: 0; }
 .dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
@@ -510,7 +643,7 @@ var css = `
   font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; color: var(--dsw-alias-label-secondary);
 }
 .dsh-local-dialog footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.dsh-local-dialog footer button { white-space: normal; }
+.dsh-local-dialog footer button { height: auto; min-height: 28px; white-space: normal; }
 `;
 function apply(ctx) {
   const manager = ctx.remote.pluginManager;
@@ -541,8 +674,8 @@ function apply(ctx) {
   }
   function useInventory(useRemoteAccess, view) {
     const canList = useRemoteAccess("pluginManager/listBundles");
-    const bundles = (0, import_react.useSyncExternalStore)(inventory.subscribe, inventory.get);
-    (0, import_react.useEffect)(() => {
+    const bundles = (0, import_react4.useSyncExternalStore)(inventory.subscribe, inventory.get);
+    (0, import_react4.useEffect)(() => {
       if (canList && view !== void 0) refresh();
     }, [canList, view]);
     return canList ? bundles : "error";
@@ -554,30 +687,30 @@ function apply(ctx) {
   }
   ctx.effect(() => ctx.locale.register(NS, LABELS), `${NS}: locale`);
   const t = ctx.locale.bind(NS);
-  const useLocale = () => (0, import_react.useSyncExternalStore)(
+  const useLocale = () => (0, import_react4.useSyncExternalStore)(
     (listener) => ctx.locale.subscribe(listener),
     () => ctx.locale.getSnapshot()
   );
   function Badge(props) {
     const bundle = useBundle(props);
     useLocale();
-    return bundle && localSource(bundle) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") }) : null;
+    return bundle && localSource(bundle) ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Tag, { tone: "info", className: "dsh-local-badge", children: t("badge") }) : null;
   }
   const toggles = store(/* @__PURE__ */ new Map());
   function LocalCard({ bundle, title, onOpen, canToggle }) {
     const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description;
     const icon = bundle.meta?.icon;
-    const [failedIcon, setFailedIcon] = (0, import_react.useState)();
-    const descriptionId = (0, import_react.useId)();
-    const action = (0, import_react.useSyncExternalStore)(toggles.subscribe, toggles.get).get(bundle.name);
+    const [failedIcon, setFailedIcon] = (0, import_react4.useState)();
+    const descriptionId = (0, import_react4.useId)();
+    const action = (0, import_react4.useSyncExternalStore)(toggles.subscribe, toggles.get).get(bundle.name);
     const busy = action === "busy";
     const locked = !canToggle || bundle.readOnlyReason !== void 0 || !bundle.enabled && (bundle.availability === "missing" || bundle.error !== void 0);
-    async function toggle() {
+    async function toggle(enabled) {
       if (locked || toggles.get().get(bundle.name) === "busy") return;
       toggles.set(new Map(toggles.get()).set(bundle.name, "busy"));
       let notice = "toggleFailed";
       try {
-        const result = await manager.setBundleEnabled(bundle.name, !bundle.enabled);
+        const result = await manager.setBundleEnabled(bundle.name, enabled);
         if (result.ok) {
           switch (result.value.application) {
             case "applied":
@@ -603,12 +736,12 @@ function apply(ctx) {
         }
       }
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-icon", "aria-hidden": "true", children: icon && icon !== failedIcon ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", { src: icon, width: "36", height: "36", alt: "", onError: () => setFailedIcon(icon) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { width: "36", height: "36", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" }) }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-main", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-title", children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("li", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "dsh-local-card", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "dsh-local-card-icon", "aria-hidden": "true", children: icon && icon !== failedIcon ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("img", { src: icon, width: "36", height: "36", alt: "", onError: () => setFailedIcon(icon) }) : /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(PluginArtworkDefault, {}) }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "dsh-local-card-main", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { className: "dsh-local-card-title", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
               "button",
               {
                 type: "button",
@@ -618,39 +751,36 @@ function apply(ctx) {
                 children: title
               }
             ),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") })
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Tag, { tone: "info", className: "dsh-local-badge", children: t("badge") })
           ] }),
-          description && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-description", id: descriptionId, children: description })
+          description && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "dsh-local-card-description", id: descriptionId, children: description })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-end", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: "dsh-local-card-end", "aria-busy": busy || void 0, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+          Switch,
           {
-            type: "button",
-            role: "switch",
             className: "dsh-local-card-switch",
-            "aria-label": t("togglePlugin", { name: title }),
-            "aria-checked": bundle.enabled,
-            "aria-busy": busy || void 0,
+            label: t("togglePlugin", { name: title }),
+            checked: bundle.enabled,
             disabled: locked || busy,
-            onClick: () => {
-              void toggle();
+            onChange: (enabled) => {
+              void toggle(enabled);
             }
           }
         ) })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", className: "dsh-local-card-notice", children: action && action !== "busy" ? t(action) : null })
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { role: "status", className: "dsh-local-card-notice", children: action && action !== "busy" ? t(action) : null })
     ] });
   }
   function LocalTab({ openPackage, useRemoteAccess }) {
     const bundles = useInventory(useRemoteAccess, NS);
     const canToggle = useRemoteAccess("pluginManager/setBundleEnabled");
     const { active } = useLocale();
-    if (bundles === "error") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listError") });
-    if (bundles === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listLoading") });
+    if (bundles === "error") return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listError") });
+    if (bundles === null) return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listLoading") });
     const collator = new Intl.Collator(active);
     const local = bundles.filter((bundle) => localSource(bundle) !== void 0).map((bundle) => ({ bundle, title: bundle.meta?.title ? ctx.locale.resolveText(bundle.meta.title) : bundle.name })).sort((left, right) => collator.compare(left.title, right.title));
-    if (local.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listEmpty") });
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", { className: "dsh-local-list", children: local.map(({ bundle, title }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    if (local.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listEmpty") });
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("ul", { className: "dsh-local-list", children: local.map(({ bundle, title }) => /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
       LocalCard,
       {
         bundle,
@@ -669,31 +799,33 @@ function apply(ctx) {
     useLocale();
     const target = bundle && reloadTarget(bundle);
     if (!target || props.subject.kind !== "bundle" || !canInspect || !canRemove || !canInstall) return null;
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SourceEditor, { target }, `${target.name}:${target.spec}`);
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(SourceEditor, { target }, `${target.name}:${target.spec}`);
   }
   function SourceEditor({ target }) {
-    const state = (0, import_react.useSyncExternalStore)(dialog.subscribe, dialog.get);
-    const [draft, setDraft] = (0, import_react.useState)(target.spec);
-    const [editing, setEditing] = (0, import_react.useState)(false);
-    const input = (0, import_react.useRef)(null);
-    const pencil = (0, import_react.useRef)(null);
+    const state = (0, import_react4.useSyncExternalStore)(dialog.subscribe, dialog.get);
+    const [draft, setDraft] = (0, import_react4.useState)(target.spec);
+    const [editing, setEditing] = (0, import_react4.useState)(false);
+    const input = (0, import_react4.useRef)(null);
+    const pencil = (0, import_react4.useRef)(null);
     const destination = installSource(draft, target.spec);
-    (0, import_react.useEffect)(() => {
+    (0, import_react4.useEffect)(() => {
       if (editing) input.current?.focus();
     }, [editing]);
     const invalid = destination === void 0;
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", { className: "dsh-local-source-section", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", { htmlFor: `${NS}-source`, children: t("sourceLabel") }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", { className: "dsh-local-source-row", onSubmit: (event) => {
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("section", { className: "dsh-local-source-section", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { htmlFor: `${NS}-source`, children: t("sourceLabel") }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("form", { className: "dsh-local-source-row", onSubmit: (event) => {
         event.preventDefault();
         if (destination && state === null) dialog.set({ kind: "confirm", target, destination });
       }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "button",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+          Button,
           {
+            size: "sm",
+            variant: "outline",
             ref: pencil,
             type: "button",
-            className: "dsh-local-button dsh-local-edit",
+            className: "dsh-local-edit",
             "aria-label": t("editSource"),
             title: t("editSource"),
             disabled: state !== null,
@@ -701,11 +833,11 @@ function apply(ctx) {
               if (editing) input.current?.focus();
               else setEditing(true);
             },
-            children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { "aria-hidden": "true", width: "15", height: "15", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.3", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" }) })
+            children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("svg", { "aria-hidden": "true", width: "15", height: "15", viewBox: "0 0 16 16", fill: "none", stroke: "currentColor", strokeWidth: "1.3", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("path", { d: "m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" }) })
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-          "input",
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+          Input,
           {
             ref: input,
             id: `${NS}-source`,
@@ -729,9 +861,9 @@ function apply(ctx) {
             }
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "submit", className: "dsh-local-button dsh-local-destructive", disabled: invalid, children: t("reload") })
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Button, { size: "sm", variant: "outline", type: "submit", className: "dsh-local-destructive", disabled: invalid, children: t("reload") })
       ] }),
-      invalid && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { id: `${NS}-source-error`, className: "dsh-local-source-error", children: t("invalidSource") })
+      invalid && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { id: `${NS}-source-error`, className: "dsh-local-source-error", children: t("invalidSource") })
     ] });
   }
   async function run(state, destination = state.destination) {
@@ -745,34 +877,34 @@ function apply(ctx) {
     refresh();
   }
   function Overlay() {
-    const state = (0, import_react.useSyncExternalStore)(dialog.subscribe, dialog.get);
-    const modal = (0, import_react.useRef)(null);
-    const status = (0, import_react.useRef)(null);
-    const dismiss = (0, import_react.useRef)(null);
+    const state = (0, import_react4.useSyncExternalStore)(dialog.subscribe, dialog.get);
+    const modal = (0, import_react4.useRef)(null);
+    const status = (0, import_react4.useRef)(null);
+    const dismiss = (0, import_react4.useRef)(null);
     useLocale();
     const open = state !== null;
     const kind = state?.kind;
     const waiting = kind === "checking" || kind === "removing" || kind === "installing";
-    (0, import_react.useEffect)(() => {
+    (0, import_react4.useEffect)(() => {
       const element = modal.current;
       if (open && element && !element.open) element.showModal();
       return () => {
         if (element?.open) element.close();
       };
     }, [open]);
-    (0, import_react.useEffect)(() => {
+    (0, import_react4.useEffect)(() => {
       if (!open) return;
       const focus = waiting ? status.current : dismiss.current;
       focus?.focus();
     }, [open, waiting]);
-    if (!state) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css });
+    if (!state) return /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("style", { children: css });
     const { kind: phase, target, destination } = state;
     const retry = "retryInstall" in state && state.retryInstall === true;
     const moving = destination !== target.spec;
     const showSource = phase === "confirm" || retry || phase === "removeFailed" || phase === "installFailed";
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("style", { children: css }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(import_jsx_runtime6.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("style", { children: css }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
         "dialog",
         {
           ref: modal,
@@ -784,56 +916,57 @@ function apply(ctx) {
             if (!waiting) dialog.set(null);
           },
           children: [
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", { id: `${NS}-title`, children: t("reload") }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: target.name }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { ref: status, id: `${NS}-status`, role: "status", tabIndex: -1, children: t(phase) }),
-            phase === "confirm" && (/\.(?:tgz|tar\.gz)$/i.test(destination) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("archiveVersion") }) : moving && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("directoryCheck") })),
-            showSource ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: destination }) : null,
-            "detail" in state && state.detail ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: state.detail }) : null,
-            retry && moving && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h3", { id: `${NS}-title`, children: t("reload") }),
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("strong", { children: target.name }) }),
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { ref: status, id: `${NS}-status`, role: "status", tabIndex: -1, children: t(phase) }),
+            phase === "confirm" && (/\.(?:tgz|tar\.gz)$/i.test(destination) ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { children: t("archiveVersion") }) : moving && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { children: t("directoryCheck") })),
+            showSource ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("code", { children: destination }) : null,
+            "detail" in state && state.detail ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { children: state.detail }) : null,
+            retry && moving && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("p", { children: [
               t("restoreSource"),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {}),
-              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: target.spec })
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("br", {}),
+              /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("code", { children: target.spec })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", { children: [
-              !waiting && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                "button",
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("footer", { children: [
+              !waiting && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+                Button,
                 {
-                  type: "button",
-                  className: "dsh-local-button",
+                  size: "sm",
+                  variant: "outline",
                   ref: dismiss,
                   autoFocus: true,
                   onClick: () => dialog.set(null),
                   children: t(phase === "confirm" ? "cancel" : "close")
                 }
               ),
-              phase === "confirm" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                "button",
+              phase === "confirm" && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+                Button,
                 {
-                  type: "button",
-                  className: "dsh-local-button dsh-local-destructive",
+                  size: "sm",
+                  variant: "outline",
+                  className: "dsh-local-destructive",
                   onClick: () => {
                     void run(state);
                   },
                   children: t("confirmAction")
                 }
               ),
-              retry && moving && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                "button",
+              retry && moving && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+                Button,
                 {
-                  type: "button",
-                  className: "dsh-local-button",
+                  size: "sm",
+                  variant: "outline",
                   onClick: () => {
                     void run(state, target.spec);
                   },
                   children: t("restoreSource")
                 }
               ),
-              retry && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-                "button",
+              retry && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+                Button,
                 {
-                  type: "button",
-                  className: "dsh-local-button",
+                  size: "sm",
+                  variant: "outline",
                   onClick: () => {
                     void run(state);
                   },

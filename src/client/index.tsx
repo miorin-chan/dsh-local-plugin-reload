@@ -1,3 +1,8 @@
+import { Button } from '@deepseek-ai/dsh-client-ui-primitives/src/Button.tsx'
+import { Input } from '@deepseek-ai/dsh-client-ui-primitives/src/Input.tsx'
+import { Switch } from '@deepseek-ai/dsh-client-ui-primitives/src/Switch.tsx'
+import { Tag } from '@deepseek-ai/dsh-client-ui-primitives/src/Tag.tsx'
+import { PluginArtworkDefault } from '@deepseek-ai/dsh-client-ui-primitives/src/plugin-artwork.tsx'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
@@ -48,13 +53,12 @@ function store<T>(initial: T) {
   }
 }
 
-const css = `
-.dsh-local-badge {
-  display: inline-flex; align-items: center; height: 18px; padding: 0 7px; border-radius: 999px;
-  font-size: 10px; line-height: 1; font-weight: 500; white-space: nowrap;
-  color: var(--dsw-alias-state-business-primary);
-  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);
-}
+// Populated by the build from the official CSS modules.
+declare const officialCss: string
+
+const css = officialCss + `
+
+.dsh-local-badge.dsh-local-badge { height: 18px; padding: 0 7px; font-size: 10px; line-height: 1; }
 /* Match the built-in plugin card's spacing and typography. */
 .dsh-local-list { display: flex; flex-direction: column; gap: 2px; list-style: none; margin: 0; padding: 0; }
 .dsh-local-card {
@@ -88,38 +92,17 @@ const css = `
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
 }
 .dsh-local-card-end { position: relative; z-index: 1; flex: none; }
-.dsh-local-card-switch {
-  display: block; width: 36px; height: 20px; padding: 2px; border: 0; border-radius: 999px;
-  background: var(--dsw-alias-border-l2); cursor: pointer;
-}
-.dsh-local-card-switch::before {
-  content: ''; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--dsw-alias-bg-base);
-}
-.dsh-local-card-switch[aria-checked='true'] { background: var(--dsw-alias-state-business-primary); }
-.dsh-local-card-switch[aria-checked='true']::before { margin-inline-start: auto; }
-.dsh-local-card-switch:disabled { opacity: .5; cursor: default; }
-.dsh-local-card-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
 .dsh-local-card-notice { margin: 0 0 8px 62px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
 .dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
-.dsh-local-button {
-  font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
-  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1); cursor: pointer;
-  white-space: nowrap; color: var(--dsw-alias-label-primary); background: transparent;
-}
-.dsh-local-button:hover { background: var(--dsw-alias-bg-layer-2); }
-.dsh-local-button:disabled { opacity: .5; cursor: default; }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
 .dsh-local-source-section { flex: 0 0 100%; min-width: 0; margin: 8px 0; }
 .dsh-local-source-section label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
 .dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
-.dsh-local-source-row button[type='submit'] { max-width: 100%; white-space: normal; }
-.dsh-local-source-input {
-  flex: 1 1 120px; min-width: 0; box-sizing: border-box; padding: 6px 8px; border-radius: 8px;
-  border: 1px solid var(--dsw-alias-border-l1); color: var(--dsw-alias-label-primary);
-  background: var(--dsw-alias-bg-layer-1); font: 12px monospace;
-}
-.dsh-local-edit { width: 28px; padding: 0; display: inline-grid; place-items: center; }
+.dsh-local-source-row button[type='submit'] { max-width: 100%; height: auto; min-height: 28px; white-space: normal; }
+.dsh-local-source-input { flex: 1 1 120px; min-width: 0; }
+.dsh-local-source-input input { font-family: monospace; }
+.dsh-local-edit.dsh-local-edit { width: 28px; padding: 0; }
 .dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
@@ -132,7 +115,7 @@ const css = `
   font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; color: var(--dsw-alias-label-secondary);
 }
 .dsh-local-dialog footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.dsh-local-dialog footer button { white-space: normal; }
+.dsh-local-dialog footer button { height: auto; min-height: 28px; white-space: normal; }
 `
 
 export function apply(ctx: ContextFace): void {
@@ -184,7 +167,7 @@ export function apply(ctx: ContextFace): void {
   function Badge(props: DetailProps) {
     const bundle = useBundle(props)
     useLocale()
-    return bundle && localSource(bundle) ? <span className="dsh-local-badge">{t('badge')}</span> : null
+    return bundle && localSource(bundle) ? <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag> : null
   }
 
   const toggles = store<ReadonlyMap<string, 'busy' | 'toggleFailed' | 'toggleRestart' | 'toggleOverridden'>>(new Map())
@@ -201,12 +184,12 @@ export function apply(ctx: ContextFace): void {
     const locked = !canToggle || bundle.readOnlyReason !== undefined
       || (!bundle.enabled && (bundle.availability === 'missing' || bundle.error !== undefined))
 
-    async function toggle() {
+    async function toggle(enabled: boolean) {
       if (locked || toggles.get().get(bundle.name) === 'busy') return
       toggles.set(new Map(toggles.get()).set(bundle.name, 'busy'))
       let notice: 'toggleFailed' | 'toggleRestart' | 'toggleOverridden' | undefined = 'toggleFailed'
       try {
-        const result = await manager.setBundleEnabled(bundle.name, !bundle.enabled)
+        const result = await manager.setBundleEnabled(bundle.name, enabled)
         if (result.ok) {
           switch (result.value.application) {
             case 'applied': notice = undefined; break
@@ -231,22 +214,19 @@ export function apply(ctx: ContextFace): void {
       <span className="dsh-local-card-icon" aria-hidden="true">
         {icon && icon !== failedIcon
           ? <img src={icon} width="36" height="36" alt="" onError={() => setFailedIcon(icon)} />
-          : <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
-            <path d="M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" />
-          </svg>}
+          : <PluginArtworkDefault />}
       </span>
       <div className="dsh-local-card-main">
         <div className="dsh-local-card-title">
           <button type="button" className="dsh-local-card-open" aria-describedby={description ? descriptionId : undefined}
             onClick={onOpen}>{title}</button>
-          <span className="dsh-local-badge">{t('badge')}</span>
+          <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag>
         </div>
         {description && <span className="dsh-local-card-description" id={descriptionId}>{description}</span>}
       </div>
-      <span className="dsh-local-card-end">
-        <button type="button" role="switch" className="dsh-local-card-switch"
-          aria-label={t('togglePlugin', { name: title })} aria-checked={bundle.enabled} aria-busy={busy || undefined}
-          disabled={locked || busy} onClick={() => { void toggle() }} />
+      <span className="dsh-local-card-end" aria-busy={busy || undefined}>
+        <Switch className="dsh-local-card-switch" label={t('togglePlugin', { name: title })}
+          checked={bundle.enabled} disabled={locked || busy} onChange={enabled => { void toggle(enabled) }} />
       </span>
     </div><p role="status" className="dsh-local-card-notice">{action && action !== 'busy' ? t(action) : null}</p></li>
   }
@@ -294,7 +274,7 @@ export function apply(ctx: ContextFace): void {
         event.preventDefault()
         if (destination && state === null) dialog.set({ kind: 'confirm', target, destination })
       }}>
-        <button ref={pencil} type="button" className="dsh-local-button dsh-local-edit" aria-label={t('editSource')}
+        <Button size="sm" variant="outline" ref={pencil} type="button" className="dsh-local-edit" aria-label={t('editSource')}
           title={t('editSource')} disabled={state !== null} onClick={() => {
             if (editing) input.current?.focus()
             else setEditing(true)
@@ -302,8 +282,8 @@ export function apply(ctx: ContextFace): void {
           <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
             <path d="m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" />
           </svg>
-        </button>
-        <input ref={input} id={`${NS}-source`} className="dsh-local-source-input" type="text" spellCheck={false}
+        </Button>
+        <Input ref={input} id={`${NS}-source`} className="dsh-local-source-input" type="text" spellCheck={false}
           autoCapitalize="off" autoComplete="off" readOnly={!editing || state !== null} value={draft}
           aria-invalid={invalid || undefined} aria-describedby={invalid ? `${NS}-source-error` : undefined}
           onChange={event => setDraft(event.target.value)} onKeyDown={event => {
@@ -314,7 +294,7 @@ export function apply(ctx: ContextFace): void {
               pencil.current?.focus()
             }
           }} />
-        <button type="submit" className="dsh-local-button dsh-local-destructive" disabled={invalid}>{t('reload')}</button>
+        <Button size="sm" variant="outline" type="submit" className="dsh-local-destructive" disabled={invalid}>{t('reload')}</Button>
       </form>
       {invalid && <p id={`${NS}-source-error`} className="dsh-local-source-error">{t('invalidSource')}</p>}
     </section>
@@ -368,14 +348,14 @@ export function apply(ctx: ContextFace): void {
         {'detail' in state && state.detail ? <p>{state.detail}</p> : null}
         {retry && moving && <p>{t('restoreSource')}<br /><code>{target.spec}</code></p>}
         <footer>
-          {!waiting && <button type="button" className="dsh-local-button" ref={dismiss} autoFocus
-            onClick={() => dialog.set(null)}>{t(phase === 'confirm' ? 'cancel' : 'close')}</button>}
-          {phase === 'confirm' && <button type="button" className="dsh-local-button dsh-local-destructive"
-            onClick={() => { void run(state) }}>{t('confirmAction')}</button>}
-          {retry && moving && <button type="button" className="dsh-local-button"
-            onClick={() => { void run(state, target.spec) }}>{t('restoreSource')}</button>}
-          {retry && <button type="button" className="dsh-local-button"
-            onClick={() => { void run(state) }}>{t('retry')}</button>}
+          {!waiting && <Button size="sm" variant="outline" ref={dismiss} autoFocus
+            onClick={() => dialog.set(null)}>{t(phase === 'confirm' ? 'cancel' : 'close')}</Button>}
+          {phase === 'confirm' && <Button size="sm" variant="outline" className="dsh-local-destructive"
+            onClick={() => { void run(state) }}>{t('confirmAction')}</Button>}
+          {retry && moving && <Button size="sm" variant="outline"
+            onClick={() => { void run(state, target.spec) }}>{t('restoreSource')}</Button>}
+          {retry && <Button size="sm" variant="outline"
+            onClick={() => { void run(state) }}>{t('retry')}</Button>}
         </footer>
       </dialog>
     </>
