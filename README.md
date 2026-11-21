@@ -3,7 +3,8 @@
 [简体中文](README.zh.md)
 
 Open **Plugins → Local** to browse locally installed bundles with **Local** badges.
-Select a card to open its built-in detail page.
+Use the switch on a card to enable or disable the bundle.
+Select the card to open its built-in detail page.
 On the detail page of a removable bundle, use the pencil icon to edit the source.
 Choose **Destructive reload** and confirm to check the source, uninstall the bundle,
 and reinstall from the selected path with the same enablement.

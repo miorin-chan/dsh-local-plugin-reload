@@ -144,6 +144,10 @@ var en = {
   listLoading: "Loading local plugins\u2026",
   listEmpty: "No locally installed plugins.",
   listError: "Could not load local plugins.",
+  togglePlugin: "Enable {name}",
+  toggleFailed: "Could not change plugin state.",
+  toggleRestart: "Restart DeepSeek Harness to apply the change.",
+  toggleOverridden: "A profile override controls this plugin.",
   sourceLabel: "Local source",
   editSource: "Edit source",
   invalidSource: "Enter an absolute local path, optionally prefixed with link: or file:.",
@@ -175,6 +179,10 @@ var LABELS = {
     listLoading: "\u6B63\u5728\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u2026",
     listEmpty: "\u6682\u65E0\u672C\u5730\u5B89\u88C5\u7684\u63D2\u4EF6\u3002",
     listError: "\u65E0\u6CD5\u52A0\u8F7D\u672C\u5730\u63D2\u4EF6\u3002",
+    togglePlugin: "\u542F\u7528 {name}",
+    toggleFailed: "\u65E0\u6CD5\u66F4\u6539\u63D2\u4EF6\u7684\u542F\u7528\u72B6\u6001\u3002",
+    toggleRestart: "\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002",
+    toggleOverridden: "\u6B64\u63D2\u4EF6\u7684\u72B6\u6001\u7531\u914D\u7F6E\u8986\u76D6\u51B3\u5B9A\u3002",
     sourceLabel: "\u672C\u5730\u6765\u6E90\u5730\u5740",
     editSource: "\u7F16\u8F91\u6765\u6E90\u5730\u5740",
     invalidSource: "\u8BF7\u8F93\u5165\u7EDD\u5BF9\u8DEF\u5F84\uFF0C\u53EF\u52A0 link: \u6216 file: \u524D\u7F00\u3002",
@@ -204,6 +212,10 @@ var LABELS = {
     listLoading: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D\u2026",
     listEmpty: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
     listError: "\u30ED\u30FC\u30AB\u30EB\u30D7\u30E9\u30B0\u30A4\u30F3\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
+    togglePlugin: "{name} \u3092\u6709\u52B9\u306B\u3059\u308B",
+    toggleFailed: "\u30D7\u30E9\u30B0\u30A4\u30F3\u306E\u72B6\u614B\u3092\u5909\u66F4\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002",
+    toggleRestart: "\u5909\u66F4\u3092\u9069\u7528\u3059\u308B\u306B\u306F DeepSeek Harness \u3092\u518D\u8D77\u52D5\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+    toggleOverridden: "\u30D7\u30E9\u30B0\u30A4\u30F3\u306E\u72B6\u614B\u306F\u30D7\u30ED\u30D5\u30A1\u30A4\u30EB\u8A2D\u5B9A\u3067\u6C7A\u307E\u308A\u307E\u3059\u3002",
     sourceLabel: "\u30ED\u30FC\u30AB\u30EB\u30BD\u30FC\u30B9",
     editSource: "\u30BD\u30FC\u30B9\u3092\u7DE8\u96C6",
     invalidSource: "\u30ED\u30FC\u30AB\u30EB\u306E\u7D76\u5BFE\u30D1\u30B9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\u3002link: \u307E\u305F\u306F file: \u306F\u7701\u7565\u3067\u304D\u307E\u3059\u3002",
@@ -233,6 +245,10 @@ var LABELS = {
     listLoading: "Lokale Plugins werden geladen\u2026",
     listEmpty: "Keine lokal installierten Plugins.",
     listError: "Lokale Plugins konnten nicht geladen werden.",
+    togglePlugin: "{name} aktivieren",
+    toggleFailed: "Plugin-Status konnte nicht ge\xE4ndert werden.",
+    toggleRestart: "Starte DeepSeek Harness neu, um die \xC4nderung anzuwenden.",
+    toggleOverridden: "Eine Profileinstellung bestimmt den Status dieses Plugins.",
     sourceLabel: "Lokale Quelle",
     editSource: "Quelle bearbeiten",
     invalidSource: "Gib einen absoluten lokalen Pfad ein. link: und file: sind optional.",
@@ -262,6 +278,10 @@ var LABELS = {
     listLoading: "Cargando complementos locales\u2026",
     listEmpty: "No hay complementos instalados localmente.",
     listError: "No se pudieron cargar los complementos locales.",
+    togglePlugin: "Activar {name}",
+    toggleFailed: "No se pudo cambiar el estado del complemento.",
+    toggleRestart: "Reinicia DeepSeek Harness para aplicar el cambio.",
+    toggleOverridden: "El perfil determina el estado del complemento.",
     sourceLabel: "Fuente local",
     editSource: "Editar fuente",
     invalidSource: "Introduce una ruta local absoluta. Los prefijos link: y file: son opcionales.",
@@ -291,6 +311,10 @@ var LABELS = {
     listLoading: "Chargement des extensions locales\u2026",
     listEmpty: "Aucune extension install\xE9e localement.",
     listError: "Impossible de charger les extensions locales.",
+    togglePlugin: "Activer {name}",
+    toggleFailed: "Impossible de modifier l\u2019\xE9tat de l\u2019extension.",
+    toggleRestart: "Red\xE9marrez DeepSeek Harness pour appliquer la modification.",
+    toggleOverridden: "Le profil d\xE9termine l\u2019\xE9tat de cette extension.",
     sourceLabel: "Source locale",
     editSource: "Modifier la source",
     invalidSource: "Saisissez un chemin local absolu. Les pr\xE9fixes link: et file: sont facultatifs.",
@@ -320,6 +344,10 @@ var LABELS = {
     listLoading: "Carregando plugins locais\u2026",
     listEmpty: "Nenhum plugin instalado localmente.",
     listError: "N\xE3o foi poss\xEDvel carregar os plugins locais.",
+    togglePlugin: "Ativar {name}",
+    toggleFailed: "N\xE3o foi poss\xEDvel alterar o estado do plugin.",
+    toggleRestart: "Reinicie o DeepSeek Harness para aplicar a altera\xE7\xE3o.",
+    toggleOverridden: "O perfil determina o estado deste plugin.",
     sourceLabel: "Origem local",
     editSource: "Editar origem",
     invalidSource: "Insira um caminho local absoluto. Os prefixos link: e file: s\xE3o opcionais.",
@@ -349,6 +377,10 @@ var LABELS = {
     listLoading: "\u0417\u0430\u0433\u0440\u0443\u0437\u043A\u0430 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432\u2026",
     listEmpty: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u043E \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0445 \u043F\u043B\u0430\u0433\u0438\u043D\u043E\u0432 \u043D\u0435\u0442.",
     listError: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044C \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u044B.",
+    togglePlugin: "\u0412\u043A\u043B\u044E\u0447\u0438\u0442\u044C {name}",
+    toggleFailed: "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u0430.",
+    toggleRestart: "\u041F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u0435 DeepSeek Harness, \u0447\u0442\u043E\u0431\u044B \u043F\u0440\u0438\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435.",
+    toggleOverridden: "\u0421\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0435 \u043F\u043B\u0430\u0433\u0438\u043D\u0430 \u043E\u043F\u0440\u0435\u0434\u0435\u043B\u044F\u0435\u0442\u0441\u044F \u043D\u0430\u0441\u0442\u0440\u043E\u0439\u043A\u0430\u043C\u0438 \u043F\u0440\u043E\u0444\u0438\u043B\u044F.",
     sourceLabel: "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
     editSource: "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0447\u043D\u0438\u043A",
     invalidSource: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0430\u0431\u0441\u043E\u043B\u044E\u0442\u043D\u044B\u0439 \u043B\u043E\u043A\u0430\u043B\u044C\u043D\u044B\u0439 \u043F\u0443\u0442\u044C. \u041F\u0440\u0435\u0444\u0438\u043A\u0441\u044B link: \u0438 file: \u043D\u0435\u043E\u0431\u044F\u0437\u0430\u0442\u0435\u043B\u044C\u043D\u044B.",
@@ -433,6 +465,20 @@ var css = `
   font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-tertiary);
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
 }
+.dsh-local-card-end { position: relative; z-index: 1; flex: none; }
+.dsh-local-card-switch {
+  display: block; width: 36px; height: 20px; padding: 2px; border: 0; border-radius: 999px;
+  background: var(--dsw-alias-border-l2); cursor: pointer;
+}
+.dsh-local-card-switch::before {
+  content: ''; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--dsw-alias-bg-base);
+}
+.dsh-local-card-switch[aria-checked='true'] { background: var(--dsw-alias-state-business-primary); }
+.dsh-local-card-switch[aria-checked='true']::before { margin-inline-start: auto; }
+.dsh-local-card-switch:disabled { opacity: .5; cursor: default; }
+.dsh-local-card-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
+.dsh-local-card-notice { margin: 0 0 8px 62px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
 .dsh-local-button {
   font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
@@ -477,7 +523,7 @@ function apply(ctx) {
   function refresh() {
     inventoryRequested = true;
     requested = true;
-    if (pending !== void 0) return;
+    if (pending !== void 0) return pending;
     pending = (async () => {
       do {
         requested = false;
@@ -491,6 +537,7 @@ function apply(ctx) {
     })().finally(() => {
       pending = void 0;
     });
+    return pending;
   }
   function useInventory(useRemoteAccess, view) {
     const canList = useRemoteAccess("pluginManager/listBundles");
@@ -516,33 +563,87 @@ function apply(ctx) {
     useLocale();
     return bundle && localSource(bundle) ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") }) : null;
   }
-  function LocalCard({ bundle, title, onOpen }) {
+  const toggles = store(/* @__PURE__ */ new Map());
+  function LocalCard({ bundle, title, onOpen, canToggle }) {
     const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description;
     const icon = bundle.meta?.icon;
     const [failedIcon, setFailedIcon] = (0, import_react.useState)();
     const descriptionId = (0, import_react.useId)();
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { className: "dsh-local-card", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-icon", "aria-hidden": "true", children: icon && icon !== failedIcon ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", { src: icon, width: "36", height: "36", alt: "", onError: () => setFailedIcon(icon) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { width: "36", height: "36", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" }) }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-main", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-title", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
-            "button",
-            {
-              type: "button",
-              className: "dsh-local-card-open",
-              "aria-describedby": description ? descriptionId : void 0,
-              onClick: onOpen,
-              children: title
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") })
+    const action = (0, import_react.useSyncExternalStore)(toggles.subscribe, toggles.get).get(bundle.name);
+    const busy = action === "busy";
+    const locked = !canToggle || bundle.readOnlyReason !== void 0 || !bundle.enabled && (bundle.availability === "missing" || bundle.error !== void 0);
+    async function toggle() {
+      if (locked || toggles.get().get(bundle.name) === "busy") return;
+      toggles.set(new Map(toggles.get()).set(bundle.name, "busy"));
+      let notice = "toggleFailed";
+      try {
+        const result = await manager.setBundleEnabled(bundle.name, !bundle.enabled);
+        if (result.ok) {
+          switch (result.value.application) {
+            case "applied":
+              notice = void 0;
+              break;
+            case "restart-required":
+              notice = "toggleRestart";
+              break;
+            case "overridden":
+              notice = "toggleOverridden";
+              break;
+          }
+        }
+      } catch {
+        notice = "toggleFailed";
+      } finally {
+        if (!disposed) {
+          await refresh();
+          const next = new Map(toggles.get());
+          if (notice) next.set(bundle.name, notice);
+          else next.delete(bundle.name);
+          toggles.set(next);
+        }
+      }
+    }
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-icon", "aria-hidden": "true", children: icon && icon !== failedIcon ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", { src: icon, width: "36", height: "36", alt: "", onError: () => setFailedIcon(icon) }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", { width: "36", height: "36", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinejoin: "round", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12 3 4 7.5v9l8 4.5 8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9M8 5.25l8 4.5" }) }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-main", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "dsh-local-card-title", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+              "button",
+              {
+                type: "button",
+                className: "dsh-local-card-open",
+                "aria-describedby": description ? descriptionId : void 0,
+                onClick: onOpen,
+                children: title
+              }
+            ),
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-badge", children: t("badge") })
+          ] }),
+          description && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-description", id: descriptionId, children: description })
         ] }),
-        description && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-description", id: descriptionId, children: description })
-      ] })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "dsh-local-card-end", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+          "button",
+          {
+            type: "button",
+            role: "switch",
+            className: "dsh-local-card-switch",
+            "aria-label": t("togglePlugin", { name: title }),
+            "aria-checked": bundle.enabled,
+            "aria-busy": busy || void 0,
+            disabled: locked || busy,
+            onClick: () => {
+              void toggle();
+            }
+          }
+        ) })
+      ] }),
+      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { role: "status", className: "dsh-local-card-notice", children: action && action !== "busy" ? t(action) : null })
     ] });
   }
   function LocalTab({ openPackage, useRemoteAccess }) {
     const bundles = useInventory(useRemoteAccess, NS);
+    const canToggle = useRemoteAccess("pluginManager/setBundleEnabled");
     const { active } = useLocale();
     if (bundles === "error") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listError") });
     if (bundles === null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { className: "dsh-local-list-status", role: "status", children: t("listLoading") });
@@ -554,6 +655,7 @@ function apply(ctx) {
       {
         bundle,
         title,
+        canToggle,
         onOpen: () => openPackage(bundle.name)
       },
       bundle.name

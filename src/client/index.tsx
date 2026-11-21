@@ -87,6 +87,20 @@ const css = `
   font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-tertiary);
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
 }
+.dsh-local-card-end { position: relative; z-index: 1; flex: none; }
+.dsh-local-card-switch {
+  display: block; width: 36px; height: 20px; padding: 2px; border: 0; border-radius: 999px;
+  background: var(--dsw-alias-border-l2); cursor: pointer;
+}
+.dsh-local-card-switch::before {
+  content: ''; display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--dsw-alias-bg-base);
+}
+.dsh-local-card-switch[aria-checked='true'] { background: var(--dsw-alias-state-business-primary); }
+.dsh-local-card-switch[aria-checked='true']::before { margin-inline-start: auto; }
+.dsh-local-card-switch:disabled { opacity: .5; cursor: default; }
+.dsh-local-card-switch:focus-visible { outline: 2px solid var(--dsw-alias-state-business-primary); outline-offset: 2px; }
+.dsh-local-card-notice { margin: 0 0 8px 62px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
+.dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
 .dsh-local-button {
   font: inherit; font-size: 12px; font-weight: 500; padding: 0 10px; min-height: 28px;
@@ -130,10 +144,10 @@ export function apply(ctx: ContextFace): void {
   let requested = false
   let disposed = false
 
-  function refresh(): void {
+  function refresh(): Promise<void> {
     inventoryRequested = true
     requested = true
-    if (pending !== undefined) return
+    if (pending !== undefined) return pending
     pending = (async () => {
       do {
         requested = false
@@ -145,6 +159,7 @@ export function apply(ctx: ContextFace): void {
         }
       } while (requested && !disposed)
     })().finally(() => { pending = undefined })
+    return pending
   }
 
   function useInventory(useRemoteAccess: DetailProps['useRemoteAccess'], view: string | undefined) {
@@ -172,12 +187,47 @@ export function apply(ctx: ContextFace): void {
     return bundle && localSource(bundle) ? <span className="dsh-local-badge">{t('badge')}</span> : null
   }
 
-  function LocalCard({ bundle, title, onOpen }: { bundle: BundleInfo; title: string; onOpen: () => void }) {
+  const toggles = store<ReadonlyMap<string, 'busy' | 'toggleFailed' | 'toggleRestart' | 'toggleOverridden'>>(new Map())
+
+  function LocalCard({ bundle, title, onOpen, canToggle }: {
+    bundle: BundleInfo; title: string; onOpen: () => void; canToggle: boolean
+  }) {
     const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description
     const icon = bundle.meta?.icon
     const [failedIcon, setFailedIcon] = useState<string>()
     const descriptionId = useId()
-    return <li className="dsh-local-card">
+    const action = useSyncExternalStore(toggles.subscribe, toggles.get).get(bundle.name)
+    const busy = action === 'busy'
+    const locked = !canToggle || bundle.readOnlyReason !== undefined
+      || (!bundle.enabled && (bundle.availability === 'missing' || bundle.error !== undefined))
+
+    async function toggle() {
+      if (locked || toggles.get().get(bundle.name) === 'busy') return
+      toggles.set(new Map(toggles.get()).set(bundle.name, 'busy'))
+      let notice: 'toggleFailed' | 'toggleRestart' | 'toggleOverridden' | undefined = 'toggleFailed'
+      try {
+        const result = await manager.setBundleEnabled(bundle.name, !bundle.enabled)
+        if (result.ok) {
+          switch (result.value.application) {
+            case 'applied': notice = undefined; break
+            case 'restart-required': notice = 'toggleRestart'; break
+            case 'overridden': notice = 'toggleOverridden'; break
+          }
+        }
+      } catch {
+        notice = 'toggleFailed'
+      } finally {
+        if (!disposed) {
+          await refresh()
+          const next = new Map(toggles.get())
+          if (notice) next.set(bundle.name, notice)
+          else next.delete(bundle.name)
+          toggles.set(next)
+        }
+      }
+    }
+
+    return <li><div className="dsh-local-card">
       <span className="dsh-local-card-icon" aria-hidden="true">
         {icon && icon !== failedIcon
           ? <img src={icon} width="36" height="36" alt="" onError={() => setFailedIcon(icon)} />
@@ -193,11 +243,17 @@ export function apply(ctx: ContextFace): void {
         </div>
         {description && <span className="dsh-local-card-description" id={descriptionId}>{description}</span>}
       </div>
-    </li>
+      <span className="dsh-local-card-end">
+        <button type="button" role="switch" className="dsh-local-card-switch"
+          aria-label={t('togglePlugin', { name: title })} aria-checked={bundle.enabled} aria-busy={busy || undefined}
+          disabled={locked || busy} onClick={() => { void toggle() }} />
+      </span>
+    </div><p role="status" className="dsh-local-card-notice">{action && action !== 'busy' ? t(action) : null}</p></li>
   }
 
   function LocalTab({ openPackage, useRemoteAccess }: PluginTabProps & Pick<DetailProps, 'useRemoteAccess'>) {
     const bundles = useInventory(useRemoteAccess, NS)
+    const canToggle = useRemoteAccess('pluginManager/setBundleEnabled')
     const { active } = useLocale()
     if (bundles === 'error') return <p className="dsh-local-list-status" role="status">{t('listError')}</p>
     if (bundles === null) return <p className="dsh-local-list-status" role="status">{t('listLoading')}</p>
@@ -207,7 +263,7 @@ export function apply(ctx: ContextFace): void {
       .sort((left, right) => collator.compare(left.title, right.title))
     if (local.length === 0) return <p className="dsh-local-list-status" role="status">{t('listEmpty')}</p>
     return <ul className="dsh-local-list">
-      {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title}
+      {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title} canToggle={canToggle}
         onOpen={() => openPackage(bundle.name)} />)}
     </ul>
   }
