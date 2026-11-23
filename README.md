@@ -15,6 +15,7 @@ If reinstalling fails after removal, retry the installation or restore from the 
 Local archives must still contain the installed version because the source check only verifies that the archive exists.
 
 Requires DeepSeek Harness 0.2.2-rc.5 or newer.
-Install this directory through **Plugins** > **Add plugin**.
+To install from a source checkout, run `npm ci` there to build the plugin, then select the directory
+in **Plugins** > **Add plugin**.
 
 [Project documentation](docs/README.md)
