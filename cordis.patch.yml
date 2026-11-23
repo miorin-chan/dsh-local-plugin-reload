@@ -2,4 +2,4 @@
 # package.json `dsh.client` and carries Local plugin reload.
 - insert:
     - id: dsh-local-plugin-reload
-      name: 'dsh-local-plugin-reload'
+      name: '@miorin/dsh-local-plugin-reload'

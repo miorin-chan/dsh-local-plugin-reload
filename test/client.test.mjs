@@ -9,7 +9,7 @@ try { await import('../client.js') } finally { globalThis.window = previousWindo
 const plugin = registration.factory(createRequire(import.meta.url))
 
 test('registers the Local tab, detail extensions and dialog, then releases all effects on unload', () => {
-  assert.equal(registration.id, 'dsh-local-plugin-reload')
+  assert.equal(registration.id, '@miorin/dsh-local-plugin-reload')
   assert.ok(plugin.inject.includes('remote.pluginManager'))
   const effects = []
   const active = new Set()
