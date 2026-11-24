@@ -49,15 +49,18 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   } : require(name))
   const slots = new Map()
   let inventory = [
-    { name: 'demo', source: 'link:/fixtures/demo', installed: true, enabled: false, removable: true },
-    { name: 'enabled', source: 'link:/fixtures/enabled', installed: true, enabled: true, removable: true },
-    { name: 'protected', source: 'link:/fixtures/protected', installed: true, enabled: false, removable: false },
+    { name: 'protected', source: 'link:/fixtures/protected', installed: true, enabled: false, removable: false,
+      meta: { title: 'Beta' } },
+    { name: '@a/dsh-client-enabled', source: 'link:/fixtures/enabled', installed: true, enabled: true, removable: true,
+      meta: { title: 'Alpha' } },
+    { name: '@z/dsh-host-demo', source: 'link:/fixtures/demo', installed: true, enabled: false, removable: true,
+      meta: { title: 'Zulu' } },
   ]
   const removed = []
   const opened = []
   apply({
     effect: install => install(), on: () => () => {},
-    locale: { register: () => () => {}, bind: () => (key, { name } = {}) => name ? key + ' ' + name : key,
+    locale: { register: () => () => {}, resolveText: title => title, bind: () => (key, { name } = {}) => name ? key + ' ' + name : key,
       getSnapshot: () => ({ active: 'en' }) },
     slots: { inject: (_name, mount) => mount(), register: ({ name }, view) => { slots.set(name, view); return () => {} } },
     remote: {
@@ -88,9 +91,12 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   render()
   await settle()
   assert.equal(render(false).props.children[0].props.canRemove, false)
-  assert.deepEqual(cardButtons().map(props => props['aria-label']), ['uninstallPlugin demo'])
+  assert.deepEqual(cards().map(card => [card.props.bundle.name, card.props.title]), [
+    ['@z/dsh-host-demo', 'Zulu'], ['@a/dsh-client-enabled', 'Alpha'], ['protected', 'Beta'],
+  ])
+  assert.deepEqual(cardButtons().map(props => props['aria-label']), ['uninstallPlugin Zulu'])
   const trash = cardButtons()[0]
-  assert.equal(trash.title, 'uninstallPlugin demo')
+  assert.equal(trash.title, 'uninstallPlugin Zulu')
   assert.equal(trash.variant, 'outline')
   assert.equal(trash.children, undefined)
   assert.match(trash.icon.type(trash.icon.props).props['data-icon'], /trash-outline/)
@@ -103,9 +109,9 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   confirm.onClick()
   confirm.onClick()
   await settle()
-  assert.deepEqual(removed, ['demo'])
+  assert.deepEqual(removed, ['@z/dsh-host-demo'])
   assert.equal(find(overlay(), props => props.role === 'status')[0].children, 'uninstallDone')
   modalButton('close').onClick()
-  assert.deepEqual(cards().map(card => card.props.bundle.name), ['enabled', 'protected'])
+  assert.deepEqual(cards().map(card => card.props.bundle.name), ['@a/dsh-client-enabled', 'protected'])
   assert.deepEqual(opened, [])
 })

@@ -20,6 +20,13 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { installSource, localSource, reload, reloadTarget, uninstall, uninstallTarget, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
+// Mirror sortPackages/shortName from dsh-client-ui-plugin-manager 0.2.2-rc.5.
+// The plugins.tab contract does not expose the Installed list order.
+function installedSortKey(name: string): string {
+  const unscoped = name.startsWith('@') ? name.slice(name.indexOf('/') + 1) : name
+  return unscoped.replace(/^dsh-(?:host-|client-)?/, '')
+}
+
 const NS = 'dsh-local-plugin-reload'
 export const inject = ['locale', 'slots', 'remote', 'remote.pluginManager']
 
@@ -253,13 +260,12 @@ export function apply(ctx: ContextFace): void {
     const bundles = useInventory(useRemoteAccess, NS)
     const canToggle = useRemoteAccess('pluginManager/setBundleEnabled')
     const canRemove = useRemoteAccess('pluginManager/removeBundle')
-    const { active } = useLocale()
+    useLocale()
     if (bundles === 'error') return <p className="dsh-local-list-status" role="status">{t('listError')}</p>
     if (bundles === null) return <p className="dsh-local-list-status" role="status">{t('listLoading')}</p>
-    const collator = new Intl.Collator(active)
     const local = bundles.filter(bundle => localSource(bundle) !== undefined)
+      .sort((a, b) => installedSortKey(a.name).localeCompare(installedSortKey(b.name)))
       .map(bundle => ({ bundle, title: bundle.meta?.title ? ctx.locale.resolveText(bundle.meta.title) : bundle.name }))
-      .sort((left, right) => collator.compare(left.title, right.title))
     if (local.length === 0) return <p className="dsh-local-list-status" role="status">{t('listEmpty')}</p>
     return <ul className="dsh-local-list">
       {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title} canToggle={canToggle} canRemove={canRemove}
