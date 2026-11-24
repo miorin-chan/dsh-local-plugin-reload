@@ -5,7 +5,7 @@
 Open **Plugins → Local** to browse locally installed bundles with **Local** badges.
 Use the switch on a card to enable or disable the bundle.
 Select the card to open its built-in detail page.
-Choose **Uninstall** on a removable bundle’s card and confirm to remove it from the current profile.
+Turn off a removable bundle, then select the red trash icon on its card and confirm to uninstall it.
 The Local tab stays open and updates its list.
 On the detail page of a removable bundle, use the pencil icon to edit the source.
 Choose **Destructive reload** and confirm to check the source, uninstall the bundle,

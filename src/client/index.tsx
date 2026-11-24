@@ -2,6 +2,8 @@ import { Button } from '@deepseek-ai/dsh-client-ui-primitives/src/Button.tsx'
 import { Input } from '@deepseek-ai/dsh-client-ui-primitives/src/Input.tsx'
 import { Switch } from '@deepseek-ai/dsh-client-ui-primitives/src/Switch.tsx'
 import { Tag } from '@deepseek-ai/dsh-client-ui-primitives/src/Tag.tsx'
+// Same glyph as the DSH 0.2.2-rc.5 PackageDetail uninstall button.
+import { IconTrashOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives/src/icons/index.tsx'
 import { PluginArtworkDefault } from '@deepseek-ai/dsh-client-ui-primitives/src/plugin-artwork.tsx'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection/client'
@@ -15,7 +17,7 @@ import type { PluginDetailProps, PluginTabProps } from '@deepseek-ai/dsh-client-
 import type { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { installSource, localSource, reload, reloadTarget, uninstall, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
+import { installSource, localSource, reload, reloadTarget, uninstall, uninstallTarget, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
 const NS = 'dsh-local-plugin-reload'
@@ -100,6 +102,12 @@ const css = officialCss + `
 .dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
 .dsh-local-destructive { color: var(--dsw-alias-state-error-primary); }
+/* Match PackageDetail's danger outline in dsh-client-ui-plugin-manager 0.2.2-rc.5. */
+.dsh-local-uninstall.dsh-local-uninstall {
+  width: 28px; padding: 0; color: var(--dsw-alias-state-error-primary);
+  --dsh-button-outline-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 30%, transparent);
+  --dsw-alias-interactive-bg-hover: color-mix(in srgb, var(--dsw-alias-state-error-primary) 8%, transparent);
+}
 .dsh-local-source-section { flex: 0 0 100%; min-width: 0; margin: 8px 0; }
 .dsh-local-source-section label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
 .dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
@@ -185,7 +193,8 @@ export function apply(ctx: ContextFace): void {
     const descriptionId = useId()
     const action = useSyncExternalStore(toggles.subscribe, toggles.get).get(bundle.name)
     const busy = action === 'busy'
-    const target = canRemove ? reloadTarget(bundle) : undefined
+    const target = canRemove ? uninstallTarget(bundle) : undefined
+    const uninstallLabel = t('uninstallPlugin', { name: title })
     const locked = !canToggle || bundle.readOnlyReason !== undefined
       || (!bundle.enabled && (bundle.availability === 'missing' || bundle.error !== undefined))
 
@@ -230,10 +239,10 @@ export function apply(ctx: ContextFace): void {
         {description && <span className="dsh-local-card-description" id={descriptionId}>{description}</span>}
       </div>
       <span className="dsh-local-card-end" aria-busy={busy || undefined}>
-        {target && <Button size="sm" variant="outline" type="button" disabled={busy}
-          aria-label={t('uninstallPlugin', { name: title })} onClick={() => {
+        {target && <Button size="sm" variant="outline" className="dsh-local-uninstall" disabled={busy}
+          icon={<IconTrashOutlineRegular size={13} />} aria-label={uninstallLabel} title={uninstallLabel} onClick={() => {
             if (dialog.get() === null) dialog.set({ operation: 'uninstall', kind: 'uninstallConfirm', target, title })
-          }}>{t('uninstall')}</Button>}
+          }} />}
         <Switch className="dsh-local-card-switch" label={t('togglePlugin', { name: title })}
           checked={bundle.enabled} disabled={locked || busy} onChange={enabled => { void toggle(enabled) }} />
       </span>

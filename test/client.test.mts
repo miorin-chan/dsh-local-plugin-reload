@@ -49,8 +49,9 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   } : require(name))
   const slots = new Map()
   let inventory = [
-    { name: 'demo', source: 'link:/fixtures/demo', installed: true, removable: true },
-    { name: 'protected', source: 'link:/fixtures/protected', installed: true, removable: false },
+    { name: 'demo', source: 'link:/fixtures/demo', installed: true, enabled: false, removable: true },
+    { name: 'enabled', source: 'link:/fixtures/enabled', installed: true, enabled: true, removable: true },
+    { name: 'protected', source: 'link:/fixtures/protected', installed: true, enabled: false, removable: false },
   ]
   const removed = []
   const opened = []
@@ -88,7 +89,12 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   await settle()
   assert.equal(render(false).props.children[0].props.canRemove, false)
   assert.deepEqual(cardButtons().map(props => props['aria-label']), ['uninstallPlugin demo'])
-  cardButtons()[0].onClick()
+  const trash = cardButtons()[0]
+  assert.equal(trash.title, 'uninstallPlugin demo')
+  assert.equal(trash.variant, 'outline')
+  assert.equal(trash.children, undefined)
+  assert.match(trash.icon.type(trash.icon.props).props['data-icon'], /trash-outline/)
+  trash.onClick()
   assert.deepEqual(removed, [])
   modalButton('cancel').onClick()
   assert.deepEqual(removed, [])
@@ -100,6 +106,6 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   assert.deepEqual(removed, ['demo'])
   assert.equal(find(overlay(), props => props.role === 'status')[0].children, 'uninstallDone')
   modalButton('close').onClick()
-  assert.deepEqual(cards().map(card => card.props.bundle.name), ['protected'])
+  assert.deepEqual(cards().map(card => card.props.bundle.name), ['enabled', 'protected'])
   assert.deepEqual(opened, [])
 })

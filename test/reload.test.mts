@@ -152,7 +152,7 @@ test('uninstalls the confirmed local bundle without inspecting or reinstalling i
   assert.deepEqual(await service.listBundles(), ok([]))
 })
 
-test('does not uninstall a changed, protected, or already removed target', async () => {
+test('does not uninstall an enabled, changed, protected, or already removed target', async () => {
   const { service, calls } = fixture()
   for (const value of [undefined, { ...bundle, source: 'file:/tmp/replaced.tgz' }, { ...bundle, removable: false },
     { ...bundle, version: '2.0.0' }, { ...bundle, enabled: true },
@@ -160,6 +160,9 @@ test('does not uninstall a changed, protected, or already removed target', async
     service.listBundles = async () => ok(value === undefined ? [] : [value])
     assert.deepEqual(await uninstall(service, target), { kind: 'uninstallChanged' })
   }
+  const enabled = { ...bundle, enabled: true }
+  service.listBundles = async () => ok([enabled])
+  assert.deepEqual(await uninstall(service, reloadTarget(enabled)), { kind: 'uninstallChanged' })
   assert.deepEqual(calls, [])
 })
 

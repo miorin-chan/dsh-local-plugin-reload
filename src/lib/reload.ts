@@ -38,6 +38,10 @@ export function reloadTarget(bundle: BundleInfo): ReloadTarget | undefined {
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === undefined ? {} : { version: bundle.version } }
 }
 
+export function uninstallTarget(bundle: BundleInfo): ReloadTarget | undefined {
+  return bundle.enabled === false ? reloadTarget(bundle) : undefined
+}
+
 type UninstallManager = Pick<Manager, 'listBundles' | 'removeBundle'>
 
 export type UninstallOutcome = { kind: 'uninstallDone' | 'uninstallRestart' | 'uninstallOverridden' | 'uninstallCancelled' }
@@ -48,8 +52,8 @@ export async function uninstall(manager: UninstallManager, target: ReloadTarget)
     const inventory = await manager.listBundles()
     if (!inventory.ok) return { kind: 'removeFailed', detail: inventory.error.message }
     const existing = inventory.value.find(bundle => bundle.name === target.name)
-    const current = existing && reloadTarget(existing)
-    if (!current || current.spec !== target.spec || current.version !== target.version || current.enabled !== target.enabled) {
+    const current = existing && uninstallTarget(existing)
+    if (target.enabled || !current || current.spec !== target.spec || current.version !== target.version) {
       return { kind: 'uninstallChanged' }
     }
 
