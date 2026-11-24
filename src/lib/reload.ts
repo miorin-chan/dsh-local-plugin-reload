@@ -38,6 +38,36 @@ export function reloadTarget(bundle: BundleInfo): ReloadTarget | undefined {
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === undefined ? {} : { version: bundle.version } }
 }
 
+type UninstallManager = Pick<Manager, 'listBundles' | 'removeBundle'>
+
+export type UninstallOutcome = { kind: 'uninstallDone' | 'uninstallRestart' | 'uninstallOverridden' | 'uninstallCancelled' }
+  | { kind: 'uninstallChanged' | 'removeFailed'; detail?: string }
+
+export async function uninstall(manager: UninstallManager, target: ReloadTarget): Promise<UninstallOutcome> {
+  try {
+    const inventory = await manager.listBundles()
+    if (!inventory.ok) return { kind: 'removeFailed', detail: inventory.error.message }
+    const existing = inventory.value.find(bundle => bundle.name === target.name)
+    const current = existing && reloadTarget(existing)
+    if (!current || current.spec !== target.spec || current.version !== target.version || current.enabled !== target.enabled) {
+      return { kind: 'uninstallChanged' }
+    }
+
+    const answer = await manager.removeBundle(target.name)
+    if (!answer.ok) return { kind: 'removeFailed', detail: answer.error.message }
+    const result = answer.value
+    switch (result.application) {
+      case 'applied': return { kind: 'uninstallDone' }
+      case 'restart-required': return { kind: 'uninstallRestart' }
+      case 'overridden': return { kind: 'uninstallOverridden' }
+      case 'cancelled': return { kind: 'uninstallCancelled' }
+      case 'failed': return { kind: 'removeFailed', detail: result.error?.diagnostic ?? result.error?.code }
+    }
+  } catch (error) {
+    return { kind: 'removeFailed', detail: error instanceof Error ? error.message : String(error) }
+  }
+}
+
 export async function reload(
   manager: Manager, target: ReloadTarget, stage: (stage: 'checking' | 'removing' | 'installing') => void,
   retryInstall = false, destination = target.spec,

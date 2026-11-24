@@ -15,7 +15,7 @@ import type { PluginDetailProps, PluginTabProps } from '@deepseek-ai/dsh-client-
 import type { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { installSource, localSource, reload, reloadTarget, type Outcome, type ReloadTarget } from '../lib/reload.js'
+import { installSource, localSource, reload, reloadTarget, uninstall, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
 const NS = 'dsh-local-plugin-reload'
@@ -33,9 +33,13 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
     'dsh-local-plugin-reload': keyof typeof LABELS.en
   }
 }
-type DialogState = { target: ReloadTarget; destination: string } & (
+type ReloadDialogState = { operation: 'reload'; target: ReloadTarget; destination: string } & (
   { kind: 'confirm' | 'checking' | 'removing' | 'installing' } | Outcome
 )
+type UninstallDialogState = { operation: 'uninstall'; target: ReloadTarget; title: string } & (
+  { kind: 'uninstallConfirm' | 'removing' } | UninstallOutcome
+)
+type DialogState = ReloadDialogState | UninstallDialogState
 
 function store<T>(initial: T) {
   let value = initial
@@ -91,7 +95,7 @@ const css = officialCss + `
   font-size: 13px; line-height: 18px; color: var(--dsw-alias-label-tertiary);
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
 }
-.dsh-local-card-end { position: relative; z-index: 1; flex: none; }
+.dsh-local-card-end { position: relative; z-index: 1; flex: none; display: flex; align-items: center; gap: 8px; }
 .dsh-local-card-notice { margin: 0 0 8px 62px; font-size: 12px; color: var(--dsw-alias-label-secondary); }
 .dsh-local-card-notice:empty { margin: 0; }
 .dsh-local-list-status { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-tertiary); }
@@ -172,8 +176,8 @@ export function apply(ctx: ContextFace): void {
 
   const toggles = store<ReadonlyMap<string, 'busy' | 'toggleFailed' | 'toggleRestart' | 'toggleOverridden'>>(new Map())
 
-  function LocalCard({ bundle, title, onOpen, canToggle }: {
-    bundle: BundleInfo; title: string; onOpen: () => void; canToggle: boolean
+  function LocalCard({ bundle, title, onOpen, canToggle, canRemove }: {
+    bundle: BundleInfo; title: string; onOpen: () => void; canToggle: boolean; canRemove: boolean
   }) {
     const description = bundle.meta?.description ? ctx.locale.resolveText(bundle.meta.description) : bundle.description
     const icon = bundle.meta?.icon
@@ -181,6 +185,7 @@ export function apply(ctx: ContextFace): void {
     const descriptionId = useId()
     const action = useSyncExternalStore(toggles.subscribe, toggles.get).get(bundle.name)
     const busy = action === 'busy'
+    const target = canRemove ? reloadTarget(bundle) : undefined
     const locked = !canToggle || bundle.readOnlyReason !== undefined
       || (!bundle.enabled && (bundle.availability === 'missing' || bundle.error !== undefined))
 
@@ -225,6 +230,10 @@ export function apply(ctx: ContextFace): void {
         {description && <span className="dsh-local-card-description" id={descriptionId}>{description}</span>}
       </div>
       <span className="dsh-local-card-end" aria-busy={busy || undefined}>
+        {target && <Button size="sm" variant="outline" type="button" disabled={busy}
+          aria-label={t('uninstallPlugin', { name: title })} onClick={() => {
+            if (dialog.get() === null) dialog.set({ operation: 'uninstall', kind: 'uninstallConfirm', target, title })
+          }}>{t('uninstall')}</Button>}
         <Switch className="dsh-local-card-switch" label={t('togglePlugin', { name: title })}
           checked={bundle.enabled} disabled={locked || busy} onChange={enabled => { void toggle(enabled) }} />
       </span>
@@ -234,6 +243,7 @@ export function apply(ctx: ContextFace): void {
   function LocalTab({ openPackage, useRemoteAccess }: PluginTabProps & Pick<DetailProps, 'useRemoteAccess'>) {
     const bundles = useInventory(useRemoteAccess, NS)
     const canToggle = useRemoteAccess('pluginManager/setBundleEnabled')
+    const canRemove = useRemoteAccess('pluginManager/removeBundle')
     const { active } = useLocale()
     if (bundles === 'error') return <p className="dsh-local-list-status" role="status">{t('listError')}</p>
     if (bundles === null) return <p className="dsh-local-list-status" role="status">{t('listLoading')}</p>
@@ -243,7 +253,7 @@ export function apply(ctx: ContextFace): void {
       .sort((left, right) => collator.compare(left.title, right.title))
     if (local.length === 0) return <p className="dsh-local-list-status" role="status">{t('listEmpty')}</p>
     return <ul className="dsh-local-list">
-      {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title} canToggle={canToggle}
+      {local.map(({ bundle, title }) => <LocalCard key={bundle.name} bundle={bundle} title={title} canToggle={canToggle} canRemove={canRemove}
         onOpen={() => openPackage(bundle.name)} />)}
     </ul>
   }
@@ -272,7 +282,7 @@ export function apply(ctx: ContextFace): void {
       <label htmlFor={`${NS}-source`}>{t('sourceLabel')}</label>
       <form className="dsh-local-source-row" onSubmit={event => {
         event.preventDefault()
-        if (destination && state === null) dialog.set({ kind: 'confirm', target, destination })
+        if (destination && state === null) dialog.set({ operation: 'reload', kind: 'confirm', target, destination })
       }}>
         <Button size="sm" variant="outline" ref={pencil} type="button" className="dsh-local-edit" aria-label={t('editSource')}
           title={t('editSource')} disabled={state !== null} onClick={() => {
@@ -300,15 +310,24 @@ export function apply(ctx: ContextFace): void {
     </section>
   }
 
-  async function run(state: DialogState, destination = state.destination) {
+  async function runReload(state: ReloadDialogState, destination = state.destination) {
     if (dialog.get() !== state) return
     const retry = 'retryInstall' in state && state.retryInstall === true
     if (!retry && state.kind !== 'confirm') return
     const { target } = state
-    const result = await reload(manager, target, kind => dialog.set({ kind, target, destination }), retry, destination)
+    const result = await reload(manager, target, kind => dialog.set({ operation: 'reload', kind, target, destination }), retry, destination)
     if (disposed) return
-    dialog.set({ ...result, target, destination })
+    dialog.set({ operation: 'reload', ...result, target, destination })
     refresh()
+  }
+
+  async function runUninstall(state: UninstallDialogState) {
+    if (dialog.get() !== state || state.kind !== 'uninstallConfirm') return
+    dialog.set({ ...state, kind: 'removing' })
+    const result = await uninstall(manager, state.target)
+    if (disposed) return
+    await refresh()
+    if (!disposed) dialog.set({ ...state, ...result })
   }
 
   function Overlay() {
@@ -331,31 +350,36 @@ export function apply(ctx: ContextFace): void {
       focus?.focus()
     }, [open, waiting])
     if (!state) return <style>{css}</style>
-    const { kind: phase, target, destination } = state
-    const retry = 'retryInstall' in state && state.retryInstall === true
-    const moving = destination !== target.spec
-    const showSource = phase === 'confirm' || retry || phase === 'removeFailed' || phase === 'installFailed'
+    const { kind: phase, target } = state
+    const reloadState = state.operation === 'reload' ? state : undefined
+    const uninstallState = state.operation === 'uninstall' ? state : undefined
+    const confirming = phase === 'confirm' || phase === 'uninstallConfirm'
+    const retry = reloadState && 'retryInstall' in reloadState && reloadState.retryInstall === true
+    const moving = reloadState !== undefined && reloadState.destination !== target.spec
+    const showSource = reloadState && (phase === 'confirm' || retry || phase === 'removeFailed' || phase === 'installFailed')
     return <>
       <style>{css}</style>
       <dialog ref={modal} className="dsh-local-dialog" aria-labelledby={`${NS}-title`} aria-describedby={`${NS}-status`}
         onCancel={event => { event.preventDefault(); if (!waiting) dialog.set(null) }}>
-        <h3 id={`${NS}-title`}>{t('reload')}</h3>
-        <p><strong>{target.name}</strong></p>
+        <h3 id={`${NS}-title`}>{t(uninstallState ? 'uninstall' : 'reload')}</h3>
+        <p><strong>{uninstallState?.title ?? target.name}</strong></p>
         <p ref={status} id={`${NS}-status`} role="status" tabIndex={-1}>{t(phase)}</p>
-        {phase === 'confirm' && (/\.(?:tgz|tar\.gz)$/i.test(destination)
+        {reloadState?.kind === 'confirm' && (/\.(?:tgz|tar\.gz)$/i.test(reloadState.destination)
           ? <p>{t('archiveVersion')}</p> : moving && <p>{t('directoryCheck')}</p>)}
-        {showSource ? <code>{destination}</code> : null}
+        {showSource ? <code>{reloadState.destination}</code> : null}
         {'detail' in state && state.detail ? <p>{state.detail}</p> : null}
         {retry && moving && <p>{t('restoreSource')}<br /><code>{target.spec}</code></p>}
         <footer>
           {!waiting && <Button size="sm" variant="outline" ref={dismiss} autoFocus
-            onClick={() => dialog.set(null)}>{t(phase === 'confirm' ? 'cancel' : 'close')}</Button>}
-          {phase === 'confirm' && <Button size="sm" variant="outline" className="dsh-local-destructive"
-            onClick={() => { void run(state) }}>{t('confirmAction')}</Button>}
-          {retry && moving && <Button size="sm" variant="outline"
-            onClick={() => { void run(state, target.spec) }}>{t('restoreSource')}</Button>}
-          {retry && <Button size="sm" variant="outline"
-            onClick={() => { void run(state) }}>{t('retry')}</Button>}
+            onClick={() => dialog.set(null)}>{t(confirming ? 'cancel' : 'close')}</Button>}
+          {reloadState?.kind === 'confirm' && <Button size="sm" variant="outline" className="dsh-local-destructive"
+            onClick={() => { void runReload(reloadState) }}>{t('confirmAction')}</Button>}
+          {uninstallState?.kind === 'uninstallConfirm' && <Button size="sm" variant="outline" className="dsh-local-destructive"
+            onClick={() => { void runUninstall(uninstallState) }}>{t('uninstall')}</Button>}
+          {reloadState && retry && moving && <Button size="sm" variant="outline"
+            onClick={() => { void runReload(reloadState, target.spec) }}>{t('restoreSource')}</Button>}
+          {reloadState && retry && <Button size="sm" variant="outline"
+            onClick={() => { void runReload(reloadState) }}>{t('retry')}</Button>}
         </footer>
       </dialog>
     </>

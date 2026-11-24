@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { installSource, localSource, reload, reloadTarget } from '../lib/reload.js'
+import { installSource, localSource, reload, reloadTarget, uninstall } from '../lib/reload.js'
 
 const bundle = {
   name: 'local-example', source: 'link:/work/local example', installed: true,
@@ -140,4 +140,39 @@ test('retry after removal installs without removing twice and reports a required
   assert.deepEqual(await run(true), { kind: 'restart' })
   assert.deepEqual(calls.map(([operation]) => operation), ['remove', 'install'])
   assert.equal((await run(true)).kind, 'changed')
+})
+
+
+test('uninstalls the confirmed local bundle without inspecting or reinstalling its source', async () => {
+  const { service, calls } = fixture()
+  delete service.inspect
+  delete service.installBundle
+  assert.deepEqual(await uninstall(service, target), { kind: 'uninstallDone' })
+  assert.deepEqual(calls, [['remove', bundle.name]])
+  assert.deepEqual(await service.listBundles(), ok([]))
+})
+
+test('does not uninstall a changed, protected, or already removed target', async () => {
+  const { service, calls } = fixture()
+  for (const value of [undefined, { ...bundle, source: 'file:/tmp/replaced.tgz' }, { ...bundle, removable: false },
+    { ...bundle, version: '2.0.0' }, { ...bundle, enabled: true },
+    { ...bundle, rows: [{ moduleName: '@miorin/dsh-local-plugin-reload' }] }]) {
+    service.listBundles = async () => ok(value === undefined ? [] : [value])
+    assert.deepEqual(await uninstall(service, target), { kind: 'uninstallChanged' })
+  }
+  assert.deepEqual(calls, [])
+})
+
+test('reports non-applied uninstall results without presenting success', async () => {
+  const { service } = fixture()
+  for (const [application, kind] of [
+    ['cancelled', 'uninstallCancelled'], ['restart-required', 'uninstallRestart'], ['overridden', 'uninstallOverridden'],
+  ]) {
+    service.removeBundle = async () => ok({ application })
+    assert.deepEqual(await uninstall(service, target), { kind })
+  }
+  service.removeBundle = async () => ok({ application: 'failed', error: { code: 'bundle-in-use', diagnostic: 'Still in use' } })
+  assert.deepEqual(await uninstall(service, target), { kind: 'removeFailed', detail: 'Still in use' })
+  service.removeBundle = async () => ({ ok: false, error: { message: 'Not authorized' } })
+  assert.deepEqual(await uninstall(service, target), { kind: 'removeFailed', detail: 'Not authorized' })
 })

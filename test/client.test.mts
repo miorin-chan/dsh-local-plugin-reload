@@ -38,3 +38,68 @@ test('registers the Local tab, detail extensions and dialog, then releases all e
   for (const dispose of effects.reverse()) dispose()
   assert.equal(active.size, 0)
 })
+
+
+test('confirms and performs a card uninstall in the Local tab without opening details', async () => {
+  const require = createRequire(import.meta.url)
+  const { apply } = registration.factory(name => name === 'react' ? {
+    ...require('react'), useEffect: effect => effect(), useId: () => 'description',
+    useRef: current => ({ current }), useState: value => [value, () => {}],
+    useSyncExternalStore: (_subscribe, get) => get(),
+  } : require(name))
+  const slots = new Map()
+  let inventory = [
+    { name: 'demo', source: 'link:/fixtures/demo', installed: true, removable: true },
+    { name: 'protected', source: 'link:/fixtures/protected', installed: true, removable: false },
+  ]
+  const removed = []
+  const opened = []
+  apply({
+    effect: install => install(), on: () => () => {},
+    locale: { register: () => () => {}, bind: () => (key, { name } = {}) => name ? key + ' ' + name : key,
+      getSnapshot: () => ({ active: 'en' }) },
+    slots: { inject: (_name, mount) => mount(), register: ({ name }, view) => { slots.set(name, view); return () => {} } },
+    remote: {
+      $on: () => () => {},
+      pluginManager: {
+        listBundles: async () => ({ ok: true, value: inventory }),
+        removeBundle: async name => {
+          removed.push(name)
+          inventory = inventory.filter(bundle => bundle.name !== name)
+          return { ok: true, value: { application: 'applied' } }
+        },
+      },
+    },
+  })
+  function find(node, predicate) {
+    if (Array.isArray(node)) return node.flatMap(child => find(child, predicate))
+    if (!node?.props) return []
+    return [...(predicate(node.props) ? [node.props] : []), ...find(node.props.children, predicate)]
+  }
+  const tab = slots.get('plugins.tab')
+  const overlay = slots.get('shell.overlay')
+  const render = (canRemove = true) => tab({ openPackage: name => opened.push(name),
+    useRemoteAccess: method => canRemove || method !== 'pluginManager/removeBundle' })
+  const settle = () => new Promise(resolve => setImmediate(resolve))
+  const cards = () => render().props.children
+  const cardButtons = () => cards().flatMap(card => find(card.type(card.props), props => props['aria-label']?.startsWith('uninstallPlugin')))
+  const modalButton = label => find(overlay(), props => props.children === label && typeof props.onClick === 'function')[0]
+  render()
+  await settle()
+  assert.equal(render(false).props.children[0].props.canRemove, false)
+  assert.deepEqual(cardButtons().map(props => props['aria-label']), ['uninstallPlugin demo'])
+  cardButtons()[0].onClick()
+  assert.deepEqual(removed, [])
+  modalButton('cancel').onClick()
+  assert.deepEqual(removed, [])
+  cardButtons()[0].onClick()
+  const confirm = modalButton('uninstall')
+  confirm.onClick()
+  confirm.onClick()
+  await settle()
+  assert.deepEqual(removed, ['demo'])
+  assert.equal(find(overlay(), props => props.role === 'status')[0].children, 'uninstallDone')
+  modalButton('close').onClick()
+  assert.deepEqual(cards().map(card => card.props.bundle.name), ['protected'])
+  assert.deepEqual(opened, [])
+})
