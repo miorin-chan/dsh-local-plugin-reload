@@ -1,6 +1,6 @@
 {
   "name": "@miorin/dsh-local-plugin-reload",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "description": "Marks local plugins and reinstalls them from their original source.",
   "type": "module",
@@ -81,5 +81,13 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/miorin-chan/dsh-local-plugin-reload.git"
+  },
+  "homepage": "https://github.com/miorin-chan/dsh-local-plugin-reload#readme",
+  "bugs": {
+    "url": "https://github.com/miorin-chan/dsh-local-plugin-reload/issues"
   }
 }
