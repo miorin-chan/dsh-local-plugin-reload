@@ -2,11 +2,28 @@ import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
 import { test } from 'node:test'
 
+const require = createRequire(import.meta.url)
+const react = require('react')
+
+const fakePrimitives = {
+  Button: props => react.createElement('button', props),
+  Input: props => react.createElement('input', props),
+  Switch: props => react.createElement('input', { type: 'checkbox', ...props }),
+  Tag: props => react.createElement('span', props),
+  IconTrashOutlineRegular: props => react.createElement('svg', { 'data-icon': 'dsw-icon-trash-outline-regular', ...props }),
+  PluginArtworkDefault: props => react.createElement('svg', props),
+}
+
 let registration
 const previousWindow = globalThis.window
 globalThis.window = { __ModuleLoader__: { load(entry) { registration = entry } } }
 try { await import('../client.js') } finally { globalThis.window = previousWindow }
-const plugin = registration.factory(createRequire(import.meta.url))
+const factoryRequire = overrides => name => {
+  if (name === '@deepseek-ai/dsh-client-ui-primitives') return fakePrimitives
+  if (overrides?.[name]) return overrides[name]
+  return require(name)
+}
+const plugin = registration.factory(factoryRequire())
 
 test('registers the Local tab, detail extensions and dialog, then releases all effects on unload', () => {
   assert.equal(registration.id, '@miorin/dsh-local-plugin-reload')
@@ -41,12 +58,13 @@ test('registers the Local tab, detail extensions and dialog, then releases all e
 
 
 test('confirms and performs a card uninstall in the Local tab without opening details', async () => {
-  const require = createRequire(import.meta.url)
-  const { apply } = registration.factory(name => name === 'react' ? {
-    ...require('react'), useEffect: effect => effect(), useId: () => 'description',
-    useRef: current => ({ current }), useState: value => [value, () => {}],
-    useSyncExternalStore: (_subscribe, get) => get(),
-  } : require(name))
+  const { apply } = registration.factory(factoryRequire({
+    react: {
+      ...react, useEffect: effect => effect(), useId: () => 'description',
+      useRef: current => ({ current }), useState: value => [value, () => {}],
+      useSyncExternalStore: (_subscribe, get) => get(),
+    },
+  }))
   const slots = new Map()
   let inventory = [
     { name: 'protected', source: 'link:/fixtures/protected', installed: true, enabled: false, removable: false,

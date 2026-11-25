@@ -1,10 +1,11 @@
-import { Button } from '@deepseek-ai/dsh-client-ui-primitives/src/Button.tsx'
-import { Input } from '@deepseek-ai/dsh-client-ui-primitives/src/Input.tsx'
-import { Switch } from '@deepseek-ai/dsh-client-ui-primitives/src/Switch.tsx'
-import { Tag } from '@deepseek-ai/dsh-client-ui-primitives/src/Tag.tsx'
-// Same glyph as the DSH 0.2.2-rc.5 PackageDetail uninstall button.
-import { IconTrashOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives/src/icons/index.tsx'
-import { PluginArtworkDefault } from '@deepseek-ai/dsh-client-ui-primitives/src/plugin-artwork.tsx'
+import {
+  Button,
+  IconTrashOutlineRegular,
+  Input,
+  PluginArtworkDefault,
+  Switch,
+  Tag,
+} from '@deepseek-ai/dsh-client-ui-primitives'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection/client'
 import type {} from '@deepseek-ai/dsh-client-ui-layout/client'
@@ -66,10 +67,7 @@ function store<T>(initial: T) {
   }
 }
 
-// Populated by the build from the official CSS modules.
-declare const officialCss: string
-
-const css = officialCss + `
+const css = `
 
 .dsh-local-badge.dsh-local-badge { height: 18px; padding: 0 7px; font-size: 10px; line-height: 1; }
 /* Match the built-in plugin card's spacing and typography. */
