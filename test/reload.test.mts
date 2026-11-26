@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { installSource, localSource, reload, reloadTarget, uninstall } from '../lib/reload.js'
+import { isAtlasOverlaySource, installSource, localSource, reload, reloadTarget, uninstall } from '../lib/reload.js'
 
 const bundle = {
   name: 'local-example', source: 'link:/work/local example', installed: true,
@@ -54,6 +54,21 @@ test('protects an aggregate that owns the reload plugin and permits other aggreg
   assert.equal(reloadTarget({ ...bundle, enabled: true, rows }), undefined)
   assert.equal(reloadTarget({ ...bundle, rows: [], error: { code: 'invalid-patch' } }), undefined)
   assert.equal(reloadTarget({ ...bundle, rows: [{ ...rows[0], moduleName: 'another-plugin' }] }).name, bundle.name)
+})
+
+test('recognizes Atlas local-dev overlay paths and suppresses reload/uninstall targets for them', () => {
+  for (const spec of [
+    'link:/Users/example/.dsh/profile/dsh-atlas-local-dev/overlays/miorin__dsh-atlas-list',
+    'file:/tmp/dsh-atlas-local-dev/overlays/bundle.tgz',
+    'link:C:\\Users\\example\\dsh-atlas-local-dev\\overlays\\bundle',
+  ]) {
+    assert.equal(isAtlasOverlaySource(spec), true)
+    assert.equal(localSource({ ...bundle, source: spec }), spec)
+    assert.equal(reloadTarget({ ...bundle, source: spec }), undefined)
+  }
+  for (const spec of [undefined, bundle.source, 'link:/work/dsh-atlas-list', 'https://example.com/dsh-atlas-local-dev/overlays/x']) {
+    assert.equal(isAtlasOverlaySource(spec), false)
+  }
 })
 
 test('uninstalls then reinstalls from the same spec with the prior enablement and the current source version', async () => {

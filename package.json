@@ -25,12 +25,7 @@
     "AGENTS.md",
     "AGENTS.local.md",
     "docs/README.md",
-    "README.zh.md",
-    "src",
-    "lib",
-    "scripts",
-    "tsconfig.json",
-    "tsconfig.tools.json"
+    "README.zh.md"
   ],
   "engines": {
     "dsh": ">=0.2.2-rc.5"

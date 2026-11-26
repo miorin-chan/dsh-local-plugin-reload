@@ -14,7 +14,14 @@ export type Outcome = { kind: 'done' | 'restart' | 'overridden' }
   | { kind: Failure; detail?: string; retryInstall?: boolean }
 
 const LOCAL_SPEC = /^(link|file):((?:\/(?!\/)|\\\\|[a-z]:[/\\]).*)$/i
+const ATLAS_OVERLAY_PATH = /(?:^|\/)dsh-atlas-local-dev\/overlays(?:\/|$)/i
 const ARCHIVE = /\.(?:tgz|tar\.gz)$/i
+
+export function isAtlasOverlaySource(spec: string | undefined): boolean {
+  if (spec === undefined) return false
+  const match = LOCAL_SPEC.exec(spec)
+  return match !== null && ATLAS_OVERLAY_PATH.test(match[2].replace(/\\/g, '/'))
+}
 
 export function localSource(bundle: BundleInfo): string | undefined {
   const spec = bundle.source
@@ -33,6 +40,7 @@ export function installSource(input: string, original: string): string | undefin
 export function reloadTarget(bundle: BundleInfo): ReloadTarget | undefined {
   const spec = localSource(bundle)
   if (spec === undefined || !bundle.removable || bundle.readOnlyReason !== undefined || bundle.error !== undefined
+    || isAtlasOverlaySource(spec)
     || bundle.name === '@miorin/dsh-local-plugin-reload'
     || bundle.rows?.some(row => row.moduleName === '@miorin/dsh-local-plugin-reload')) return undefined
   return { name: bundle.name, spec, enabled: bundle.enabled, ...bundle.version === undefined ? {} : { version: bundle.version } }

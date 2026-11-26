@@ -231,3 +231,47 @@ test('keeps the reload editor collapsed at the page bottom and opens it from the
   tree = render(Editor, editor.props)
   assert.equal(body(tree).hidden, true)
 })
+
+test('yields plugins.detail.badge to @miorin/dsh-atlas-atlas while keeping its own badge', async () => {
+  const { apply } = registration.factory(factoryRequire({
+    react: {
+      ...react,
+      useEffect: effect => effect(),
+      useId: () => 'yield-id',
+      useRef: current => ({ current }),
+      useState: value => [value, () => {}],
+      useSyncExternalStore: (_subscribe, get) => get(),
+    },
+  }))
+  const views = new Map()
+  let badgeEntries: Array<{ options: { id?: string } }> = [{ options: { id: '@miorin/dsh-atlas-atlas' } }]
+  const listeners = new Set<() => void>()
+  const bundles = [
+    { name: '@a/dsh-demo', source: 'link:/fixtures/demo', installed: true, availability: 'profile', enabled: true, removable: true, rows: [] },
+    { name: '@miorin/dsh-atlas-atlas', source: 'link:/fixtures/atlas', installed: true, availability: 'profile', enabled: true, removable: false, rows: [] },
+  ]
+  apply({
+    effect: install => install(),
+    on: () => () => {},
+    locale: { register: () => () => {}, resolveText: title => title, bind: () => key => key, subscribe: () => () => {}, getSnapshot: () => ({ active: 'en' }) },
+    slots: {
+      inject: (_name, mount) => mount(),
+      register: ({ name }, view) => { views.set(name, view); return () => {} },
+      entriesOfSlot: name => (name === 'plugins.detail.badge' ? badgeEntries : []),
+      subscribe: (_name, listener) => { listeners.add(listener); return () => { listeners.delete(listener) } },
+    },
+    remote: { $on: () => () => {}, pluginManager: { listBundles: async () => ({ ok: true, value: bundles }) } },
+  })
+  const Badge = views.get('plugins.detail.badge')
+  const allowed = () => true
+  Badge({ subject: { kind: 'bundle', pkg: { name: '@a/dsh-demo', rows: [] } }, useRemoteAccess: allowed })
+  await new Promise(resolve => setImmediate(resolve))
+
+  assert.equal(Badge({ subject: { kind: 'bundle', pkg: { name: '@a/dsh-demo', rows: [] } }, useRemoteAccess: allowed }), null)
+  const ownBadge = Badge({ subject: { kind: 'bundle', pkg: { name: '@miorin/dsh-atlas-atlas', rows: [] } }, useRemoteAccess: allowed })
+  assert.equal(ownBadge?.props?.className, 'dsh-local-badge')
+
+  badgeEntries = []
+  const restoredBadge = Badge({ subject: { kind: 'bundle', pkg: { name: '@a/dsh-demo', rows: [] } }, useRemoteAccess: allowed })
+  assert.equal(restoredBadge?.props?.label, 'sectionTitle')
+})

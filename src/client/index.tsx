@@ -31,6 +31,8 @@ function installedSortKey(name: string): string {
 }
 
 const NS = 'dsh-local-plugin-reload'
+const ATLAS_MANAGER_PACKAGE = '@miorin/dsh-atlas-atlas'
+const NOOP_SUBSCRIBE = () => () => {}
 export const inject = ['locale', 'slots', 'remote', 'remote.pluginManager']
 
 type ContextFace = Pick<Context, 'effect' | 'on'> & {
@@ -97,7 +99,7 @@ const css = `
 .dsh-local-card-open:focus-visible { outline: none; }
 .dsh-local-card-open:focus-visible::after {
   border-radius: var(--dsw-radius-xl, 16px);
-  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-brand-primary));
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
   outline-offset: 2px;
 }
 .dsh-local-card-description {
@@ -221,12 +223,24 @@ export function apply(ctx: ContextFace): void {
 
   // The title badge asks the bottom section to open; each request is a fresh object, so repeated clicks still land.
   const reveal = store<{ readonly name: string } | null>(null)
+  const hasAtlasDetailBadge = () => (
+    typeof ctx.slots.entriesOfSlot === 'function'
+      ? ctx.slots.entriesOfSlot('plugins.detail.badge').some(entry => entry.options.id === ATLAS_MANAGER_PACKAGE)
+      : false
+  )
+  const subscribeDetailBadges = (listener: () => void) => (
+    typeof ctx.slots.subscribe === 'function'
+      ? ctx.slots.subscribe('plugins.detail.badge', listener)
+      : NOOP_SUBSCRIBE()
+  )
 
   function Badge(props: DetailProps) {
+    const atlasOwnsBadge = useSyncExternalStore(subscribeDetailBadges, hasAtlasDetailBadge, hasAtlasDetailBadge)
     const bundle = useBundle(props)
     const target = useReloadTarget(props, bundle)
     useLocale()
     if (!bundle || !localSource(bundle)) return null
+    if (atlasOwnsBadge && bundle.name !== ATLAS_MANAGER_PACKAGE) return null
     const tag = <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag>
     if (!target) return tag
     return <Tooltip label={t('sectionTitle')} side="bottom">
