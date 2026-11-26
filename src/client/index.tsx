@@ -1,10 +1,12 @@
 import {
   Button,
+  IconChevronRightOutlineRegular,
   IconTrashOutlineRegular,
   Input,
   PluginArtworkDefault,
   Switch,
   Tag,
+  Tooltip,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-connection/client'
@@ -113,14 +115,42 @@ const css = `
   --dsh-button-outline-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 30%, transparent);
   --dsw-alias-interactive-bg-hover: color-mix(in srgb, var(--dsw-alias-state-error-primary) 8%, transparent);
 }
-.dsh-local-source-section { flex: 0 0 100%; min-width: 0; margin: 8px 0; }
-.dsh-local-source-section label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+/* The title badge doubles as the way down to the reload section. */
+.dsh-local-badge-button {
+  display: inline-flex; padding: 0; border: 0; border-radius: 999px;
+  background: transparent; color: inherit; font: inherit; cursor: pointer;
+}
+.dsh-local-badge-button:focus-visible {
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .dsh-local-badge-button:hover .dsh-local-badge {
+    background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 18%, transparent);
+  }
+}
+/* Match PackageDetail's .detailSection and .sectionTitle in dsh-client-ui-plugin-manager 0.2.2-rc.5. */
+.dsh-local-section { display: flex; flex-direction: column; gap: 12px; min-width: 0; scroll-margin: 16px; }
+.dsh-local-section-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; }
+.dsh-local-section-toggle {
+  display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
+  margin-inline: -6px 0; padding: 2px 6px; border: 0; border-radius: 6px;
+  background: transparent; color: inherit; font: inherit; text-align: start; cursor: pointer;
+}
+.dsh-local-section-toggle:focus-visible {
+  outline: var(--dsw-focus-ring-width, 2px) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: 2px;
+}
+@media (hover: hover) { .dsh-local-section-toggle:hover { background: var(--dsw-alias-interactive-bg-hover); } }
+.dsh-local-chevron { flex: none; color: var(--dsw-alias-label-secondary); transition: transform 140ms ease; }
+.dsh-local-section-toggle[aria-expanded='true'] > .dsh-local-chevron { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) { .dsh-local-chevron { transition: none; } }
 .dsh-local-source-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; }
 .dsh-local-source-row button[type='submit'] { max-width: 100%; height: auto; min-height: 28px; white-space: normal; }
 .dsh-local-source-input { flex: 1 1 120px; min-width: 0; }
 .dsh-local-source-input input { font-family: monospace; }
 .dsh-local-edit.dsh-local-edit { width: 28px; padding: 0; }
-.dsh-local-source-error { color: var(--dsw-alias-state-error-primary); font-size: 12px; }
+.dsh-local-source-error { margin: 8px 0 0; color: var(--dsw-alias-state-error-primary); font-size: 12px; }
 .dsh-local-dialog {
   width: min(420px, calc(100vw - 32px)); padding: 20px; box-sizing: border-box;
   border: 1px solid var(--dsw-alias-border-l1); border-radius: 16px;
@@ -181,10 +211,28 @@ export function apply(ctx: ContextFace): void {
     listener => ctx.locale.subscribe(listener), () => ctx.locale.getSnapshot(),
   )
 
+  function useReloadTarget(props: DetailProps, bundle: BundleInfo | undefined): ReloadTarget | undefined {
+    const canInspect = props.useRemoteAccess('pluginManager/inspect')
+    const canRemove = props.useRemoteAccess('pluginManager/removeBundle')
+    const canInstall = props.useRemoteAccess('pluginManager/installBundle')
+    const target = bundle && reloadTarget(bundle)
+    return props.subject.kind === 'bundle' && canInspect && canRemove && canInstall ? target : undefined
+  }
+
+  // The title badge asks the bottom section to open; each request is a fresh object, so repeated clicks still land.
+  const reveal = store<{ readonly name: string } | null>(null)
+
   function Badge(props: DetailProps) {
     const bundle = useBundle(props)
+    const target = useReloadTarget(props, bundle)
     useLocale()
-    return bundle && localSource(bundle) ? <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag> : null
+    if (!bundle || !localSource(bundle)) return null
+    const tag = <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag>
+    if (!target) return tag
+    return <Tooltip label={t('sectionTitle')} side="bottom">
+      <button type="button" className="dsh-local-badge-button" aria-controls={`${NS}-section`}
+        onClick={() => reveal.set({ name: target.name })}>{tag}</button>
+    </Tooltip>
   }
 
   const toggles = store<ReadonlyMap<string, 'busy' | 'toggleFailed' | 'toggleRestart' | 'toggleOverridden'>>(new Map())
@@ -272,54 +320,75 @@ export function apply(ctx: ContextFace): void {
   }
 
   function ReloadSection(props: DetailProps) {
-    const bundle = useBundle(props)
-    const canInspect = props.useRemoteAccess('pluginManager/inspect')
-    const canRemove = props.useRemoteAccess('pluginManager/removeBundle')
-    const canInstall = props.useRemoteAccess('pluginManager/installBundle')
+    const target = useReloadTarget(props, useBundle(props))
     useLocale()
-    const target = bundle && reloadTarget(bundle)
-    if (!target || props.subject.kind !== 'bundle' || !canInspect || !canRemove || !canInstall) return null
-    return <SourceEditor key={`${target.name}:${target.spec}`} target={target} />
+    return target ? <SourceEditor key={`${target.name}:${target.spec}`} target={target} /> : null
   }
 
   function SourceEditor({ target }: { target: ReloadTarget }) {
     const state = useSyncExternalStore(dialog.subscribe, dialog.get)
+    const request = useSyncExternalStore(reveal.subscribe, reveal.get)
+    const [open, setOpen] = useState(false)
+    const [revealed, setRevealed] = useState<object>()
     const [draft, setDraft] = useState(target.spec)
     const [editing, setEditing] = useState(false)
+    const section = useRef<HTMLElement>(null)
+    const toggle = useRef<HTMLButtonElement>(null)
     const input = useRef<HTMLInputElement>(null)
     const pencil = useRef<HTMLButtonElement>(null)
     const destination = installSource(draft, target.spec)
     useEffect(() => { if (editing) input.current?.focus() }, [editing])
+    useEffect(() => {
+      if (request?.name !== target.name) return
+      reveal.set(null)
+      setOpen(true)
+      setRevealed(request)
+    }, [request])
+    // Runs after the opened body commits, so the scroll brings the whole section into view.
+    useEffect(() => {
+      if (!revealed) return
+      const still = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      section.current?.scrollIntoView({ block: 'nearest', behavior: still ? 'auto' : 'smooth' })
+      toggle.current?.focus({ preventScroll: true })
+    }, [revealed])
     const invalid = destination === undefined
-    return <section className="dsh-local-source-section">
-      <label htmlFor={`${NS}-source`}>{t('sourceLabel')}</label>
-      <form className="dsh-local-source-row" onSubmit={event => {
-        event.preventDefault()
-        if (destination && state === null) dialog.set({ operation: 'reload', kind: 'confirm', target, destination })
-      }}>
-        <Button size="sm" variant="outline" ref={pencil} type="button" className="dsh-local-edit" aria-label={t('editSource')}
-          title={t('editSource')} disabled={state !== null} onClick={() => {
-            if (editing) input.current?.focus()
-            else setEditing(true)
-          }}>
-          <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
-            <path d="m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" />
-          </svg>
-        </Button>
-        <Input ref={input} id={`${NS}-source`} className="dsh-local-source-input" type="text" spellCheck={false}
-          autoCapitalize="off" autoComplete="off" readOnly={!editing || state !== null} value={draft}
-          aria-invalid={invalid || undefined} aria-describedby={invalid ? `${NS}-source-error` : undefined}
-          onChange={event => setDraft(event.target.value)} onKeyDown={event => {
-            if (event.key === 'Escape' && editing) {
-              event.stopPropagation()
-              setDraft(target.spec)
-              setEditing(false)
-              pencil.current?.focus()
-            }
-          }} />
-        <Button size="sm" variant="outline" type="submit" className="dsh-local-destructive" disabled={invalid}>{t('reload')}</Button>
-      </form>
-      {invalid && <p id={`${NS}-source-error`} className="dsh-local-source-error">{t('invalidSource')}</p>}
+    return <section ref={section} id={`${NS}-section`} className="dsh-local-section">
+      <h4 className="dsh-local-section-title">
+        <button ref={toggle} type="button" className="dsh-local-section-toggle" aria-expanded={open}
+          aria-controls={`${NS}-section-body`} onClick={() => setOpen(!open)}>
+          <IconChevronRightOutlineRegular size={12} className="dsh-local-chevron" aria-hidden="true" />
+          <span>{t('sectionTitle')}</span>
+        </button>
+      </h4>
+      <div id={`${NS}-section-body`} hidden={!open}>
+        <form className="dsh-local-source-row" onSubmit={event => {
+          event.preventDefault()
+          if (destination && state === null) dialog.set({ operation: 'reload', kind: 'confirm', target, destination })
+        }}>
+          <Button size="sm" variant="outline" ref={pencil} type="button" className="dsh-local-edit" aria-label={t('editSource')}
+            title={t('editSource')} disabled={state !== null} onClick={() => {
+              if (editing) input.current?.focus()
+              else setEditing(true)
+            }}>
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+              <path d="m3 10-.6 3.5L6 13l7.2-7.2a1.5 1.5 0 0 0-2.1-2.1L3 10Zm6.8-5 2.1 2.1" />
+            </svg>
+          </Button>
+          <Input ref={input} id={`${NS}-source`} aria-label={t('sourceLabel')} className="dsh-local-source-input"
+            type="text" spellCheck={false} autoCapitalize="off" autoComplete="off" readOnly={!editing || state !== null} value={draft}
+            aria-invalid={invalid || undefined} aria-describedby={invalid ? `${NS}-source-error` : undefined}
+            onChange={event => setDraft(event.target.value)} onKeyDown={event => {
+              if (event.key === 'Escape' && editing) {
+                event.stopPropagation()
+                setDraft(target.spec)
+                setEditing(false)
+                pencil.current?.focus()
+              }
+            }} />
+          <Button size="sm" variant="outline" type="submit" className="dsh-local-destructive" disabled={invalid}>{t('reload')}</Button>
+        </form>
+        {invalid && <p id={`${NS}-source-error`} className="dsh-local-source-error">{t('invalidSource')}</p>}
+      </div>
     </section>
   }
 
@@ -403,9 +472,9 @@ export function apply(ctx: ContextFace): void {
     const changed = ctx.remote.$on('plugin-manager/changed', refreshIfRequested)
     const reset = ctx.on('connection/reset', refreshIfRequested)
     const badge = ctx.slots.inject('plugins.detail.badge', () => ctx.slots.register({ name: 'plugins.detail.badge', id: NS }, Badge))
-    // The detail title wraps slot entries, so the editor can take the full next line.
-    const reloadRow = ctx.slots.inject('plugins.detail.badge', () => ctx.slots.register({
-      name: 'plugins.detail.badge', id: `${NS}.reload`, order: 100,
+    // Detail sections follow the page's own Source section, so the editor sits beside the facts it changes.
+    const reloadSection = ctx.slots.inject('plugins.detail.section', () => ctx.slots.register({
+      name: 'plugins.detail.section', id: NS,
     }, ReloadSection))
     const tab = ctx.slots.inject('plugins.tab', () => ctx.slots.register({
       name: 'plugins.tab', id: NS, label: () => t('badge'), order: -10,
@@ -413,7 +482,7 @@ export function apply(ctx: ContextFace): void {
     const overlay = ctx.slots.inject('shell.overlay', () => ctx.slots.register({ name: 'shell.overlay', id: NS }, Overlay))
     return () => {
       disposed = true
-      badge(); reloadRow(); tab(); overlay(); changed(); reset()
+      badge(); reloadSection(); tab(); overlay(); changed(); reset()
     }
   }, `${NS}: panel entries`)
 }

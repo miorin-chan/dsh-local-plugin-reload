@@ -7,9 +7,10 @@ Use the switch on a card to enable or disable the bundle.
 Select the card to open its built-in detail page.
 Turn off a removable bundle, then select the red trash icon on its card and confirm to uninstall it.
 The Local tab stays open and updates its list.
-On the detail page of a removable bundle, use the pencil icon to edit the source.
-Choose **Destructive reload** and confirm to check the source, uninstall the bundle,
-and reinstall from the selected path with the same enablement.
+On the detail page of a removable bundle, expand **Local reload** at the bottom,
+or select the **Local** badge beside the title to jump there.
+Use the pencil icon to edit the source. Choose **Destructive reload** and confirm to check the source,
+uninstall the bundle, and reinstall from the selected path with the same enablement.
 Enter an absolute local path, optionally with a `link:` or `file:` prefix.
 
 Keep the window open until the operation finishes.

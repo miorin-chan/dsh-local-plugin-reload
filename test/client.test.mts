@@ -10,6 +10,8 @@ const fakePrimitives = {
   Input: props => react.createElement('input', props),
   Switch: props => react.createElement('input', { type: 'checkbox', ...props }),
   Tag: props => react.createElement('span', props),
+  Tooltip: props => react.createElement('span', { 'data-tooltip': props.label }, props.children),
+  IconChevronRightOutlineRegular: props => react.createElement('svg', props),
   IconTrashOutlineRegular: props => react.createElement('svg', { 'data-icon': 'dsw-icon-trash-outline-regular', ...props }),
   PluginArtworkDefault: props => react.createElement('svg', props),
 }
@@ -49,7 +51,7 @@ test('registers the Local tab, detail extensions and dialog, then releases all e
   })
   assert.deepEqual([...active].sort(), [
     'connection/reset', 'dsh-local-plugin-reload', 'plugin-manager/changed',
-    'plugins.detail.badge/dsh-local-plugin-reload', 'plugins.detail.badge/dsh-local-plugin-reload.reload',
+    'plugins.detail.badge/dsh-local-plugin-reload', 'plugins.detail.section/dsh-local-plugin-reload',
     'plugins.tab/dsh-local-plugin-reload', 'shell.overlay/dsh-local-plugin-reload',
   ])
   for (const dispose of effects.reverse()) dispose()
@@ -132,4 +134,100 @@ test('confirms and performs a card uninstall in the Local tab without opening de
   modalButton('close').onClick()
   assert.deepEqual(cards().map(card => card.props.bundle.name), ['@a/dsh-client-enabled', 'protected'])
   assert.deepEqual(opened, [])
+})
+
+test('keeps the reload editor collapsed at the page bottom and opens it from the title badge', async () => {
+  // Minimal hook state per component, enough to follow one render cycle and its effects.
+  const states = new Map()
+  let slots
+  let cursor = 0
+  let effects = []
+  const slot = init => {
+    const key = cursor++
+    if (!(key in slots)) slots[key] = init()
+    return key
+  }
+  const fakeReact = {
+    ...react,
+    useState: init => {
+      const key = slot(() => init)
+      const owner = slots
+      return [owner[key], value => { owner[key] = value }]
+    },
+    useRef: current => slots[slot(() => ({ current }))],
+    useEffect: (effect, deps) => {
+      const key = slot(() => undefined)
+      const previous = slots[key]
+      if (!previous || !deps || deps.some((dep, index) => dep !== previous[index])) {
+        slots[key] = deps ?? []
+        effects.push(effect)
+      }
+    },
+    useSyncExternalStore: (_subscribe, get) => get(),
+    useId: () => 'id',
+  }
+  const render = (component, props) => {
+    if (!states.has(component)) states.set(component, [])
+    slots = states.get(component)
+    cursor = 0
+    effects = []
+    const output = component(props)
+    for (const effect of effects) effect()
+    return output
+  }
+  const { apply } = registration.factory(factoryRequire({ react: fakeReact }))
+  const views = new Map()
+  const bundle = { name: '@a/dsh-demo', source: 'link:/fixtures/demo', installed: true, availability: 'profile',
+    enabled: true, removable: true, rows: [] }
+  apply({
+    effect: install => install(), on: () => () => {},
+    locale: { register: () => () => {}, resolveText: title => title, bind: () => key => key,
+      subscribe: () => () => {}, getSnapshot: () => ({ active: 'en' }) },
+    slots: { inject: (_name, mount) => mount(), register: ({ name }, view) => { views.set(name, view); return () => {} } },
+    remote: { $on: () => () => {}, pluginManager: { listBundles: async () => ({ ok: true, value: [bundle] }) } },
+  })
+  const pkg = { name: bundle.name, rows: [] }
+  const allowed = method => method !== 'pluginManager/denied'
+  const page = { subject: { kind: 'bundle', pkg }, useRemoteAccess: allowed }
+  const Badge = views.get('plugins.detail.badge')
+  const Section = views.get('plugins.detail.section')
+  render(Badge, page)
+  await new Promise(resolve => setImmediate(resolve))
+
+  // A row page and a page without install access keep the badge as a plain tag and draw no section.
+  const rowPage = { subject: { kind: 'row', pkg, row: { rowId: 'r', moduleName: 'm', enabled: true } }, useRemoteAccess: allowed }
+  const readOnly = { ...page, useRemoteAccess: method => method !== 'pluginManager/installBundle' }
+  for (const props of [rowPage, readOnly]) {
+    assert.equal(render(Badge, props).props.className, 'dsh-local-badge')
+    assert.equal(render(Section, props), null)
+  }
+
+  const editor = render(Section, page)
+  const Editor = editor.type
+  const find = (node, predicate) => {
+    if (Array.isArray(node)) return node.flatMap(child => find(child, predicate))
+    if (!node?.props) return []
+    return [...(predicate(node.props) ? [node.props] : []), ...find(node.props.children, predicate)]
+  }
+  const toggle = tree => find(tree, props => 'aria-expanded' in props)[0]
+  const body = tree => find(tree, props => props.id === 'dsh-local-plugin-reload-section-body')[0]
+  let tree = render(Editor, editor.props)
+  assert.equal(tree.props.id, 'dsh-local-plugin-reload-section')
+  assert.equal(toggle(tree)['aria-expanded'], false)
+  assert.equal(body(tree).hidden, true)
+
+  const badge = render(Badge, page)
+  assert.equal(badge.props.label, 'sectionTitle')
+  const button = badge.props.children
+  assert.equal(button.props['aria-controls'], 'dsh-local-plugin-reload-section')
+  button.props.onClick()
+  render(Editor, editor.props)
+  tree = render(Editor, editor.props)
+  assert.equal(toggle(tree)['aria-expanded'], true)
+  assert.equal(body(tree).hidden, false)
+
+  // The request is consumed, so collapsing stays collapsed until the badge is used again.
+  toggle(tree).onClick()
+  tree = render(Editor, editor.props)
+  assert.equal(body(tree).hidden, true)
 })
