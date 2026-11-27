@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "Local plugin reload",
-    "description": "Marks local plugins and reinstalls them from their original source."
+    "description": "Marks local plugins and reinstalls them from their original source.",
+    "detail": "docs/DETAIL.md"
   }
 }
