@@ -20,7 +20,7 @@ import type { PluginDetailProps, PluginTabProps } from '@deepseek-ai/dsh-client-
 import type { SlotRegistry } from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type { PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
-import { installSource, localSource, reload, reloadTarget, uninstall, uninstallTarget, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
+import { installSource, isAtlasOverlaySource, localSource, reload, reloadTarget, uninstall, uninstallTarget, type Outcome, type ReloadTarget, type UninstallOutcome } from '../lib/reload.js'
 import { LABELS } from './labels.js'
 
 // Mirror sortPackages/shortName from dsh-client-ui-plugin-manager 0.2.2-rc.5.
@@ -134,6 +134,7 @@ const css = `
 /* Match PackageDetail's .detailSection and .sectionTitle in dsh-client-ui-plugin-manager 0.2.2-rc.5. */
 .dsh-local-section { display: flex; flex-direction: column; gap: 12px; min-width: 0; scroll-margin: 16px; }
 .dsh-local-section-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; }
+.dsh-local-install-note { margin: 0; font-size: 13px; line-height: 20px; color: var(--dsw-alias-label-secondary); }
 .dsh-local-section-toggle {
   display: inline-flex; align-items: center; gap: 4px; max-width: 100%;
   margin-inline: -6px 0; padding: 2px 6px; border: 0; border-radius: 6px;
@@ -334,9 +335,15 @@ export function apply(ctx: ContextFace): void {
   }
 
   function ReloadSection(props: DetailProps) {
-    const target = useReloadTarget(props, useBundle(props))
+    const bundle = useBundle(props)
+    const target = useReloadTarget(props, bundle)
     useLocale()
-    return target ? <SourceEditor key={`${target.name}:${target.spec}`} target={target} /> : null
+    if (target) return <SourceEditor key={`${target.name}:${target.spec}`} target={target} />
+    if (props.subject.kind !== 'bundle' || !bundle || !isAtlasOverlaySource(localSource(bundle))) return null
+    return <section className="dsh-local-section">
+      <h4 className="dsh-local-section-title">{t('atlasInstallTitle')}</h4>
+      <p className="dsh-local-install-note">{t('atlasInstallNote')}</p>
+    </section>
   }
 
   function SourceEditor({ target }: { target: ReloadTarget }) {
@@ -488,7 +495,7 @@ export function apply(ctx: ContextFace): void {
     const badge = ctx.slots.inject('plugins.detail.badge', () => ctx.slots.register({ name: 'plugins.detail.badge', id: NS }, Badge))
     // Detail sections follow the page's own Source section, so the editor sits beside the facts it changes.
     const reloadSection = ctx.slots.inject('plugins.detail.section', () => ctx.slots.register({
-      name: 'plugins.detail.section', id: NS,
+      name: 'plugins.detail.section', id: NS, order: -10,
     }, ReloadSection))
     const tab = ctx.slots.inject('plugins.tab', () => ctx.slots.register({
       name: 'plugins.tab', id: NS, label: () => t('badge'), order: -10,

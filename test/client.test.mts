@@ -179,12 +179,14 @@ test('keeps the reload editor collapsed at the page bottom and opens it from the
   const views = new Map()
   const bundle = { name: '@a/dsh-demo', source: 'link:/fixtures/demo', installed: true, availability: 'profile',
     enabled: true, removable: true, rows: [] }
+  const atlas = { ...bundle, name: '@miorin/dsh-atlas-session',
+    source: 'link:/profile/dsh-atlas-local-dev/overlays/miorin__dsh-atlas-session/overlay-fixture' }
   apply({
     effect: install => install(), on: () => () => {},
     locale: { register: () => () => {}, resolveText: title => title, bind: () => key => key,
       subscribe: () => () => {}, getSnapshot: () => ({ active: 'en' }) },
     slots: { inject: (_name, mount) => mount(), register: ({ name }, view) => { views.set(name, view); return () => {} } },
-    remote: { $on: () => () => {}, pluginManager: { listBundles: async () => ({ ok: true, value: [bundle] }) } },
+    remote: { $on: () => () => {}, pluginManager: { listBundles: async () => ({ ok: true, value: [bundle, atlas] }) } },
   })
   const pkg = { name: bundle.name, rows: [] }
   const allowed = method => method !== 'pluginManager/denied'
@@ -230,6 +232,19 @@ test('keeps the reload editor collapsed at the page bottom and opens it from the
   toggle(tree).onClick()
   tree = render(Editor, editor.props)
   assert.equal(body(tree).hidden, true)
+
+  // An Atlas overlay is locally installed, but the generic editor must not offer to remove it.
+  const atlasSubject = { kind: 'bundle', pkg: { name: atlas.name, rows: [] } }
+  for (const useRemoteAccess of [allowed, readOnly.useRemoteAccess]) {
+    const atlasPage = { subject: atlasSubject, useRemoteAccess }
+    const info = render(Section, atlasPage)
+    assert.equal(info?.type, 'section')
+    assert.equal(find(info, props => props.children === 'atlasInstallTitle').length, 1)
+    assert.equal(find(info, props => props.children === 'atlasInstallNote').length, 1)
+    assert.equal(find(info, props => typeof props.onClick === 'function' || typeof props.onSubmit === 'function').length, 0)
+    assert.equal(render(Badge, atlasPage).props.className, 'dsh-local-badge')
+  }
+  assert.equal(render(Section, { ...rowPage, subject: { ...rowPage.subject, pkg: atlasSubject.pkg } }), null)
 })
 
 test('yields plugins.detail.badge to @miorin/dsh-atlas-atlas while keeping its own badge', async () => {

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isAtlasOverlaySource, installSource, localSource, reload, reloadTarget, uninstall } from '../lib/reload.js'
+import { isAtlasOverlaySource, installSource, localSource, reload, reloadTarget, uninstall, uninstallTarget } from '../lib/reload.js'
 
 const bundle = {
   name: 'local-example', source: 'link:/work/local example', installed: true,
@@ -65,6 +65,7 @@ test('recognizes Atlas local-dev overlay paths and suppresses reload/uninstall t
     assert.equal(isAtlasOverlaySource(spec), true)
     assert.equal(localSource({ ...bundle, source: spec }), spec)
     assert.equal(reloadTarget({ ...bundle, source: spec }), undefined)
+    assert.equal(uninstallTarget({ ...bundle, source: spec }), undefined)
   }
   for (const spec of [undefined, bundle.source, 'link:/work/dsh-atlas-list', 'https://example.com/dsh-atlas-local-dev/overlays/x']) {
     assert.equal(isAtlasOverlaySource(spec), false)
