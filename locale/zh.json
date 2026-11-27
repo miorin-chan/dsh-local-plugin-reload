@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "本地插件重载",
-    "description": "标记本地插件，并在详情页编辑来源地址后卸载重装。"
+    "description": "标记本地插件，并在详情页编辑来源地址后卸载重装。",
+    "detail": "docs/DETAIL.zh.md"
   }
 }

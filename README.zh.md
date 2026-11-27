@@ -16,4 +16,14 @@ DSH 会检查地址，再卸载插件并从所选地址安装，沿用原来的�
 需要 DeepSeek Harness 0.2.2-rc.5 或更新版本。
 从源码安装时，先在检出目录运行 `npm ci` 构建插件，再在 **插件** > **添加插件** 中选择该目录。
 
+## 实拍截图
+
+「本地」页签和演示插件的「破坏性重载」确认框。
+拍摄时没有确认重装。
+
+![本地链接的演示插件的破坏性重载确认框](docs/assets/screenshots/main-light.png)
+
+[深色模式主图](docs/assets/screenshots/main-dark.png) · 「本地」页签 ([浅色](docs/assets/screenshots/entry-light.png)
+/ [深色](docs/assets/screenshots/entry-dark.png))
+
 [项目文档](docs/README.md)

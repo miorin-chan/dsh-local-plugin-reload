@@ -21,4 +21,14 @@ Requires DeepSeek Harness 0.2.2-rc.5 or newer.
 To install from a source checkout, run `npm ci` there to build the plugin, then select the directory
 in **Plugins** > **Add plugin**.
 
+## Screenshots
+
+The **Local** tab and the **Destructive reload** confirmation for a demo bundle.
+The reinstall was not confirmed. The screenshots show the Chinese UI.
+
+![Destructive reload confirmation for a locally linked demo bundle](docs/assets/screenshots/main-light.png)
+
+[Main view in dark mode](docs/assets/screenshots/main-dark.png) · Local tab
+([light](docs/assets/screenshots/entry-light.png) / [dark](docs/assets/screenshots/entry-dark.png))
+
 [Project documentation](docs/README.md)
