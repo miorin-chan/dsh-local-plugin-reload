@@ -31,7 +31,7 @@ function installedSortKey(name: string): string {
 }
 
 const NS = 'dsh-local-plugin-reload'
-const ATLAS_MANAGER_PACKAGE = '@miorin/dsh-atlas-atlas'
+const ATLAS_DEV_PACKAGE = '@miorin/dsh-atlas-dev'
 const NOOP_SUBSCRIBE = () => () => {}
 export const inject = ['locale', 'slots', 'remote', 'remote.pluginManager']
 
@@ -226,7 +226,7 @@ export function apply(ctx: ContextFace): void {
   const reveal = store<{ readonly name: string } | null>(null)
   const hasAtlasDetailBadge = () => (
     typeof ctx.slots.entriesOfSlot === 'function'
-      ? ctx.slots.entriesOfSlot('plugins.detail.badge').some(entry => entry.options.id === ATLAS_MANAGER_PACKAGE)
+      ? ctx.slots.entriesOfSlot('plugins.detail.badge').some(entry => entry.options.id === ATLAS_DEV_PACKAGE)
       : false
   )
   const subscribeDetailBadges = (listener: () => void) => (
@@ -241,7 +241,7 @@ export function apply(ctx: ContextFace): void {
     const target = useReloadTarget(props, bundle)
     useLocale()
     if (!bundle || !localSource(bundle)) return null
-    if (atlasOwnsBadge && bundle.name !== ATLAS_MANAGER_PACKAGE) return null
+    if (atlasOwnsBadge && bundle.name !== ATLAS_DEV_PACKAGE) return null
     const tag = <Tag tone="info" className="dsh-local-badge">{t('badge')}</Tag>
     if (!target) return tag
     return <Tooltip label={t('sectionTitle')} side="bottom">

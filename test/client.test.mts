@@ -247,7 +247,7 @@ test('keeps the reload editor collapsed at the page bottom and opens it from the
   assert.equal(render(Section, { ...rowPage, subject: { ...rowPage.subject, pkg: atlasSubject.pkg } }), null)
 })
 
-test('yields plugins.detail.badge to @miorin/dsh-atlas-atlas while keeping its own badge', async () => {
+test('yields plugins.detail.badge to @miorin/dsh-atlas-dev while keeping its own badge', async () => {
   const { apply } = registration.factory(factoryRequire({
     react: {
       ...react,
@@ -259,11 +259,11 @@ test('yields plugins.detail.badge to @miorin/dsh-atlas-atlas while keeping its o
     },
   }))
   const views = new Map()
-  let badgeEntries: Array<{ options: { id?: string } }> = [{ options: { id: '@miorin/dsh-atlas-atlas' } }]
+  let badgeEntries: Array<{ options: { id?: string } }> = [{ options: { id: '@miorin/dsh-atlas-dev' } }]
   const listeners = new Set<() => void>()
   const bundles = [
     { name: '@a/dsh-demo', source: 'link:/fixtures/demo', installed: true, availability: 'profile', enabled: true, removable: true, rows: [] },
-    { name: '@miorin/dsh-atlas-atlas', source: 'link:/fixtures/atlas', installed: true, availability: 'profile', enabled: true, removable: false, rows: [] },
+    { name: '@miorin/dsh-atlas-dev', source: 'link:/fixtures/atlas', installed: true, availability: 'profile', enabled: true, removable: false, rows: [] },
   ]
   apply({
     effect: install => install(),
@@ -283,7 +283,7 @@ test('yields plugins.detail.badge to @miorin/dsh-atlas-atlas while keeping its o
   await new Promise(resolve => setImmediate(resolve))
 
   assert.equal(Badge({ subject: { kind: 'bundle', pkg: { name: '@a/dsh-demo', rows: [] } }, useRemoteAccess: allowed }), null)
-  const ownBadge = Badge({ subject: { kind: 'bundle', pkg: { name: '@miorin/dsh-atlas-atlas', rows: [] } }, useRemoteAccess: allowed })
+  const ownBadge = Badge({ subject: { kind: 'bundle', pkg: { name: '@miorin/dsh-atlas-dev', rows: [] } }, useRemoteAccess: allowed })
   assert.equal(ownBadge?.props?.className, 'dsh-local-badge')
 
   badgeEntries = []
